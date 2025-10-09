@@ -1,0 +1,125 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  admin
+  personal
+}
+
+model User {
+  id           String    @id @default(uuid())
+  name         String
+  email        String    @unique
+  passwordHash String
+  role         Role
+  students     Student[] @relation("PersonalStudents")
+  payments     Payment[]
+  createdAt    DateTime  @default(now())
+}
+
+model Student {
+  id         String     @id @default(uuid())
+  personal   User       @relation("PersonalStudents", fields: [personalId], references: [id])
+  personalId String
+  name       String
+  email      String     @unique
+  phone      String?
+  age        Int?
+  weight     Float?
+  height     Float?
+  goal       String?
+  workouts   Workout[]
+  diets      Diet[]
+  feedbacks  Feedback[]
+  progress   Progress[]
+  payments   Payment[]
+  createdAt  DateTime   @default(now())
+}
+
+model Workout {
+  id          String     @id @default(uuid())
+  student     Student    @relation(fields: [studentId], references: [id])
+  studentId   String
+  title       String
+  description String?
+  dayOfWeek   String?
+  feedbacks   Feedback[]
+  exercises   Exercise[]
+  createdAt   DateTime   @default(now())
+}
+
+model Exercise {
+  id          String  @id @default(uuid())
+  workout     Workout @relation(fields: [workoutId], references: [id])
+  workoutId   String
+  name        String
+  series      Int?
+  repetitions String?
+  load        Float?
+  restTime    String?
+  notes       String?
+}
+
+model Feedback {
+  id        String   @id @default(uuid())
+  student   Student  @relation(fields: [studentId], references: [id])
+  studentId String
+  workout   Workout? @relation(fields: [workoutId], references: [id])
+  workoutId String?
+  date      DateTime @default(now())
+  rating    Int?
+  comment   String?
+}
+
+model Diet {
+  id          String     @id @default(uuid())
+  student     Student    @relation(fields: [studentId], references: [id])
+  studentId   String
+  title       String
+  description String?
+  dayOfWeek   String?
+  meals       DietMeal[]
+}
+
+model DietMeal {
+  id       String  @id @default(uuid())
+  diet     Diet    @relation(fields: [dietId], references: [id])
+  dietId   String
+  mealTime String
+  items    String
+  notes    String?
+}
+
+model Progress {
+  id          String   @id @default(uuid())
+  student     Student  @relation(fields: [studentId], references: [id])
+  studentId   String
+  weight      Float?
+  height      Float?
+  arm         Float?
+  leg         Float?
+  waist       Float?
+  chest       Float?
+  observation String?
+  photoUrl    String?  
+  date        DateTime @default(now())
+}
+
+
+model Payment {
+  id         String   @id @default(uuid())
+  personal   User     @relation(fields: [personalId], references: [id])
+  personalId String
+  student    Student  @relation(fields: [studentId], references: [id])
+  studentId  String
+  amount     Float
+  dueDate    DateTime
+  paid       Boolean  @default(false)
+  createdAt  DateTime @default(now())
+}
