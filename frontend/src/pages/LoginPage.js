@@ -1,60 +1,81 @@
-import React, { useState, useContext } from "react";
-import api from "../api/api";
-import { AuthContext } from "../context/AuthContext";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
-const LoginPage = () => {
-  const { login } = useContext(AuthContext);
+export default function LoginPage() {
   const navigate = useNavigate();
+  const { login } = useAuth();
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
 
-  const handleSubmit = async (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
+    setError("");
 
     try {
-      const res = await api.post("/auth/login", { email, password });
-      login(res.data.user, res.data.token);
-      navigate("/dashboard");
+      const res = await fetch("http://localhost:3333/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.error || "Credenciais inválidas");
+        return;
+      }
+
+      // 🧠 Agora salvamos token e usuário no localStorage
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("user", JSON.stringify(data.user));
+
+      // 🧩 Atualiza o contexto global
+      login(data.token, data.user);
+
+      // ✅ Redireciona para o painel
+      navigate("/students");
     } catch (err) {
-      setError("Credenciais inválidas");
+      console.error(err);
+      setError("Erro ao conectar ao servidor");
     }
   };
 
   return (
-    <div className="d-flex vh-100 align-items-center justify-content-center bg-light">
-      <div className="card p-4 shadow-sm" style={{ width: "400px" }}>
-        <h3 className="text-center mb-3">Login do Personal</h3>
-        <form onSubmit={handleSubmit}>
-          <div className="mb-3">
-            <label className="form-label">Email</label>
-            <input
-              type="email"
-              className="form-control"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
-          </div>
-          <div className="mb-3">
-            <label className="form-label">Senha</label>
-            <input
-              type="password"
-              className="form-control"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
-          </div>
-          {error && <div className="alert alert-danger">{error}</div>}
-          <button type="submit" className="btn btn-primary w-100">
-            Entrar
-          </button>
-        </form>
-      </div>
+    <div className="container mt-5" style={{ maxWidth: "400px" }}>
+      <h3 className="text-center mb-4">Login - Sistema Personal</h3>
+
+      <form onSubmit={handleLogin}>
+        <div className="mb-3">
+          <label className="form-label">Email</label>
+          <input
+            type="email"
+            className="form-control"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
+        </div>
+
+        <div className="mb-3">
+          <label className="form-label">Senha</label>
+          <input
+            type="password"
+            className="form-control"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
+        </div>
+
+        {error && <p className="text-danger text-center">{error}</p>}
+
+        <button type="submit" className="btn btn-primary w-100">
+          Entrar
+        </button>
+      </form>
     </div>
   );
-};
-
-export default LoginPage;
+}

@@ -1,259 +1,190 @@
-import React, { useEffect, useState, useContext } from "react";
-import api from "../api/api";
-import { AuthContext } from "../context/AuthContext";
+import React, { useEffect, useState } from "react";
+import { useAuth } from "../context/AuthContext";
+import { useTheme } from "../context/ThemeContext";
+import { useNavigate } from "react-router-dom";
+import { Bar } from "react-chartjs-2";
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+} from "chart.js";
 
-const DashboardPage = () => {
-  const { user, token, logout } = useContext(AuthContext);
-  const [students, setStudents] = useState([]);
+ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
+
+export default function DashboardPage() {
+  const { token } = useAuth();
+  const { theme } = useTheme();
+  const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [showModal, setShowModal] = useState(false);
+  const navigate = useNavigate();
 
-  // Campos do formulário de novo aluno
-  const [form, setForm] = useState({
-    name: "",
-    email: "",
-    phone: "",
-    age: "",
-    weight: "",
-    height: "",
-    goal: "",
-  });
+  // === Aplica cores padrão globais do gráfico ===
+  ChartJS.defaults.color = theme === "dark" ? "#f8f9fa" : "#1f1f1f";
+  ChartJS.defaults.borderColor = theme === "dark" ? "rgba(255,255,255,0.1)" : "#ddd";
+  ChartJS.defaults.backgroundColor = "transparent";
 
-  // Buscar alunos cadastrados
   useEffect(() => {
-    const fetchStudents = async () => {
+    const fetchStats = async () => {
+      if (!token) {
+        setLoading(false);
+        return;
+      }
+
       try {
-        const res = await api.get("/students", {
-          headers: { Authorization: `Bearer ${token}` },
+        const res = await fetch("http://localhost:3333/dashboard", {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
         });
-        setStudents(res.data);
+
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Erro ao carregar dados");
+        setStats(data);
       } catch (err) {
-        console.error(err);
-        setError("Erro ao carregar alunos");
+        console.error("Erro ao carregar métricas:", err);
+        setError("Erro ao carregar dados do dashboard");
       } finally {
         setLoading(false);
       }
     };
 
-    fetchStudents();
+    fetchStats();
   }, [token]);
 
-  // Atualiza os campos do formulário
-  const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+  if (loading) return <p>Carregando dashboard...</p>;
+  if (error) return <p className="text-danger">{error}</p>;
+  if (!stats) return <p>Nenhum dado disponível.</p>;
+
+  const studentsByMonth = stats.studentsByMonth || [];
+  const latestStudents = stats.latestStudents || [];
+
+  const chartData = {
+    labels: studentsByMonth.map((m) => m.label),
+    datasets: [
+      {
+        label: "Alunos cadastrados",
+        data: studentsByMonth.map((m) => m.count),
+        backgroundColor:
+          theme === "dark" ? "rgba(13, 202, 240, 0.6)" : "rgba(54, 162, 235, 0.6)",
+      },
+    ],
   };
 
-  // Envia o formulário para cadastrar aluno
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      const res = await api.post("/students", form, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setStudents([...students, res.data.student]);
-      setShowModal(false);
-      setForm({
-        name: "",
-        email: "",
-        phone: "",
-        age: "",
-        weight: "",
-        height: "",
-        goal: "",
-      });
-    } catch (err) {
-      console.error(err);
-      alert("Erro ao cadastrar aluno. Verifique os dados.");
-    }
+  const chartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        labels: {
+          color: theme === "dark" ? "#f8f9fa" : "#1f1f1f", // ✅ Legenda visível
+        },
+      },
+      title: { display: false },
+    },
+    scales: {
+      x: {
+        ticks: {
+          color: theme === "dark" ? "#f8f9fa" : "#1f1f1f", // ✅ Eixo X visível
+          font: { size: 12 },
+        },
+        grid: {
+          color: theme === "dark" ? "rgba(255,255,255,0.1)" : "#ddd",
+        },
+      },
+      y: {
+        ticks: {
+          color: theme === "dark" ? "#f8f9fa" : "#1f1f1f", // ✅ Eixo Y visível
+          font: { size: 12 },
+        },
+        grid: {
+          color: theme === "dark" ? "rgba(255,255,255,0.1)" : "#ddd",
+        },
+      },
+    },
   };
 
   return (
-    <div className="container mt-5">
-      {/* Header */}
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <h2>👋 Bem-vindo, {user?.name}</h2>
-        <button onClick={logout} className="btn btn-outline-danger">
-          Sair
-        </button>
-      </div>
+    <div className="container mt-4">
+      <h3 className="mb-4">📊 Dashboard Administrativo</h3>
 
-      {/* Card principal */}
-      <div className="card p-4 shadow-sm">
-        <div className="d-flex justify-content-between align-items-center mb-3">
-          <h4>Seus alunos cadastrados</h4>
-          <button
-            className="btn btn-primary"
-            onClick={() => setShowModal(true)}
-          >
-            + Novo Aluno
-          </button>
-        </div>
-
-        {loading && <p>Carregando...</p>}
-        {error && <p className="text-danger">{error}</p>}
-
-        {!loading && students.length === 0 && (
-          <p>Nenhum aluno cadastrado ainda.</p>
-        )}
-
-        {!loading && students.length > 0 && (
-          <div className="table-responsive">
-            <table className="table table-striped align-middle">
-              <thead>
-                <tr>
-                  <th>Nome</th>
-                  <th>Email</th>
-                  <th>Objetivo</th>
-                  <th>Peso</th>
-                  <th>Altura</th>
-                  <th>Ações</th>
-                </tr>
-              </thead>
-              <tbody>
-                {students.map((s) => (
-                  <tr key={s.id}>
-                    <td>{s.name}</td>
-                    <td>{s.email}</td>
-                    <td>{s.goal || "-"}</td>
-                    <td>{s.weight ? `${s.weight} kg` : "-"}</td>
-                    <td>{s.height ? `${s.height} m` : "-"}</td>
-                    <td>
-                      <button
-                        className="btn btn-sm btn-outline-primary"
-                        onClick={() =>
-                          (window.location.href = `/student/${s.id}`)
-                        }
-                      >
-                        Ver detalhes
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
-
-      {/* Modal de cadastro */}
-      {showModal && (
-        <div
-          className="modal fade show d-block"
-          tabIndex="-1"
-          style={{ backgroundColor: "rgba(0,0,0,0.6)" }}
-        >
-          <div className="modal-dialog">
-            <div className="modal-content">
-              <div className="modal-header">
-                <h5 className="modal-title">Cadastrar novo aluno</h5>
-                <button
-                  type="button"
-                  className="btn-close"
-                  onClick={() => setShowModal(false)}
-                ></button>
-              </div>
-
-              <form onSubmit={handleSubmit}>
-                <div className="modal-body">
-                  <div className="mb-3">
-                    <label className="form-label">Nome</label>
-                    <input
-                      name="name"
-                      value={form.name}
-                      onChange={handleChange}
-                      className="form-control"
-                      required
-                    />
-                  </div>
-
-                  <div className="mb-3">
-                    <label className="form-label">Email</label>
-                    <input
-                      name="email"
-                      type="email"
-                      value={form.email}
-                      onChange={handleChange}
-                      className="form-control"
-                      required
-                    />
-                  </div>
-
-                  <div className="mb-3">
-                    <label className="form-label">Telefone</label>
-                    <input
-                      name="phone"
-                      value={form.phone}
-                      onChange={handleChange}
-                      className="form-control"
-                    />
-                  </div>
-
-                  <div className="row">
-                    <div className="col-md-4 mb-3">
-                      <label className="form-label">Idade</label>
-                      <input
-                        name="age"
-                        type="number"
-                        value={form.age}
-                        onChange={handleChange}
-                        className="form-control"
-                      />
-                    </div>
-                    <div className="col-md-4 mb-3">
-                      <label className="form-label">Peso (kg)</label>
-                      <input
-                        name="weight"
-                        type="number"
-                        step="0.1"
-                        value={form.weight}
-                        onChange={handleChange}
-                        className="form-control"
-                      />
-                    </div>
-                    <div className="col-md-4 mb-3">
-                      <label className="form-label">Altura (m)</label>
-                      <input
-                        name="height"
-                        type="number"
-                        step="0.01"
-                        value={form.height}
-                        onChange={handleChange}
-                        className="form-control"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="mb-3">
-                    <label className="form-label">Objetivo</label>
-                    <input
-                      name="goal"
-                      value={form.goal}
-                      onChange={handleChange}
-                      className="form-control"
-                    />
-                  </div>
-                </div>
-
-                <div className="modal-footer">
-                  <button
-                    type="button"
-                    className="btn btn-secondary"
-                    onClick={() => setShowModal(false)}
-                  >
-                    Cancelar
-                  </button>
-                  <button type="submit" className="btn btn-success">
-                    Salvar
-                  </button>
-                </div>
-              </form>
+      {/* === CARDS PRINCIPAIS === */}
+      <div className="row text-center mb-4">
+        {[
+          { label: "Alunos", value: stats.totalStudents ?? 0 },
+          { label: "Treinos", value: stats.totalWorkouts ?? 0 },
+          { label: "Feedbacks", value: stats.totalFeedbacks ?? 0 },
+          {
+            label: "Média de Avaliações",
+            value: stats.avgRating ? stats.avgRating.toFixed(1) : "0.0",
+          },
+        ].map((card, i) => (
+          <div key={i} className="col-md-3 mb-3">
+            <div className="card p-3 shadow-sm text-center">
+              <h5>{card.label}</h5>
+              <h3>{card.value}</h3>
             </div>
           </div>
-        </div>
-      )}
+        ))}
+      </div>
+
+      {/* === GRÁFICO === */}
+      <div className="card p-4 shadow-sm mb-4">
+        <h5 className="mb-3">Crescimento de Alunos (Últimos 6 meses)</h5>
+        {studentsByMonth.length > 0 ? (
+          <div
+            style={{
+              backgroundColor: theme === "dark" ? "#1f1f1f" : "#fff",
+              borderRadius: "8px",
+              padding: "10px",
+              height: "350px",
+            }}
+          >
+            <Bar data={chartData} options={chartOptions} />
+          </div>
+        ) : (
+          <p>Nenhum dado de crescimento disponível.</p>
+        )}
+      </div>
+
+      {/* === ÚLTIMOS ALUNOS === */}
+      <div className="card p-4 shadow-sm">
+        <h5 className="mb-3">👥 Últimos Alunos Cadastrados</h5>
+        {latestStudents.length > 0 ? (
+          <table className="table table-sm table-bordered">
+            <thead className={theme === "dark" ? "table-dark" : "table-light"}>
+              <tr>
+                <th>Nome</th>
+                <th>Data de Cadastro</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody>
+              {latestStudents.map((s) => (
+                <tr key={s.id}>
+                  <td>{s.name}</td>
+                  <td>{new Date(s.createdAt).toLocaleDateString("pt-BR")}</td>
+                  <td>
+                    <button
+                      className="btn btn-outline-primary btn-sm"
+                      onClick={() => navigate(`/students/${s.id}`)}
+                    >
+                      Ver aluno
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        ) : (
+          <p>Nenhum aluno cadastrado ainda.</p>
+        )}
+      </div>
     </div>
   );
-};
-
-export default DashboardPage;
+}

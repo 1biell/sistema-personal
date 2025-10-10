@@ -42,7 +42,7 @@ export const createProgress = async (req, res) => {
   try {
     const { studentId } = req.params;
     const personalId = req.user.id;
-    const { weight, chest, waist, arms, legs, observation } = req.body;
+    const { weight, chest, waist, arm, leg, observation } = req.body;
 
     // Verifica se o aluno pertence ao personal logado
     const student = await prisma.student.findFirst({
@@ -61,8 +61,8 @@ export const createProgress = async (req, res) => {
         weight: weight ? Number(weight) : null,
         chest: chest ? Number(chest) : null,
         waist: waist ? Number(waist) : null,
-        arms: arms ? Number(arms) : null,
-        legs: legs ? Number(legs) : null,
+        arm: arm ? Number(arm) : null,
+        leg: leg ? Number(leg) : null,
         observation,
       },
     });

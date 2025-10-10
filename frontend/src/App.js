@@ -1,22 +1,102 @@
 import React from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import { AuthProvider } from "./context/AuthContext";
-import LoginPage from "./pages/LoginPage";
-import DashboardPage from "./pages/DashboardPage";
-import StudentDetailsPage from "./pages/StudentDetailsPage";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import { AuthProvider, useAuth } from "./context/AuthContext";
 
-const App = () => {
+// Componentes principais
+import Header from "./components/layout/Header";
+import StudentsPage from "./pages/StudentsPage";
+import StudentDetailsPage from "./pages/StudentDetailsPage";
+import DashboardPage from "./pages/DashboardPage";
+import SettingsPage from "./pages/SettingsPage"; // ⚙️ nova página
+import LoginPage from "./pages/LoginPage";
+
+import "./styles/theme.css";
+
+// ========================
+// 🔒 ROTA PRIVADA
+// ========================
+function PrivateRoute({ children }) {
+  const { isAuthenticated } = useAuth();
+  return isAuthenticated ? children : <Navigate to="/login" replace />;
+}
+
+// ========================
+// 🚀 APP PRINCIPAL
+// ========================
+function App() {
   return (
     <AuthProvider>
       <Router>
         <Routes>
-          <Route path="/" element={<LoginPage />} />
-          <Route path="/dashboard" element={<DashboardPage />} />
-          <Route path="/student/:id" element={<StudentDetailsPage />} />
+          {/* Login */}
+          <Route path="/login" element={<LoginPage />} />
+
+          {/* Dashboard */}
+          <Route
+            path="/dashboard"
+            element={
+              <PrivateRoute>
+                <>
+                  <Header />
+                  <div className="main-content" style={{ paddingTop: "80px" }}>
+                    <DashboardPage />
+                  </div>
+                </>
+              </PrivateRoute>
+            }
+          />
+
+          {/* Listagem de alunos */}
+          <Route
+            path="/students"
+            element={
+              <PrivateRoute>
+                <>
+                  <Header />
+                  <div className="main-content" style={{ paddingTop: "80px" }}>
+                    <StudentsPage />
+                  </div>
+                </>
+              </PrivateRoute>
+            }
+          />
+
+          {/* Detalhes de um aluno */}
+          <Route
+            path="/students/:id"
+            element={
+              <PrivateRoute>
+                <>
+                  <Header />
+                  <div className="main-content" style={{ paddingTop: "80px" }}>
+                    <StudentDetailsPage />
+                  </div>
+                </>
+              </PrivateRoute>
+            }
+          />
+
+          {/* ⚙️ Configurações */}
+          <Route
+            path="/settings"
+            element={
+              <PrivateRoute>
+                <>
+                  <Header />
+                  <div className="main-content" style={{ paddingTop: "80px" }}>
+                    <SettingsPage />
+                  </div>
+                </>
+              </PrivateRoute>
+            }
+          />
+
+          {/* Redirecionamento padrão */}
+          <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
       </Router>
     </AuthProvider>
   );
-};
+}
 
 export default App;

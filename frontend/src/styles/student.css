@@ -1,0 +1,78 @@
+/* ====== GERAL ====== */
+.section-container {
+  margin-top: 15px;
+  font-size: 15px;
+  color: #333;
+}
+
+.section-container h5 {
+  font-weight: 600;
+  color: #111;
+}
+
+/* ====== INFO ====== */
+.info-container p {
+  margin: 4px 0;
+}
+
+.info-container strong {
+  color: #111;
+}
+
+/* ====== TREINOS ====== */
+.workout-item {
+  border-bottom: 1px solid #e0e0e0;
+  padding: 10px 0;
+}
+
+.workout-item strong {
+  color: #0d6efd;
+}
+
+.workout-item small {
+  color: #666;
+  display: block;
+  margin-top: 2px;
+}
+
+/* ====== FEEDBACKS ====== */
+.feedback-item {
+  padding: 8px 0;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.feedback-item strong {
+  color: #0d6efd;
+}
+
+.feedback-item small {
+  color: #555;
+}
+
+.add-btn {
+  margin-top: 10px;
+  font-weight: 500;
+}
+
+/* ====== PROGRESSO ====== */
+.chart-container {
+  background: #fff;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.05);
+}
+
+.progress-table {
+  margin-top: 20px;
+}
+
+.progress-table th {
+  background-color: #f8f9fa;
+  font-weight: 600;
+  text-align: center;
+}
+
+.progress-table td {
+  text-align: center;
+  vertical-align: middle;
+}

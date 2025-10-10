@@ -1,0 +1,68 @@
+.gnt-header {
+  position: sticky;
+  top: 0;
+  background: linear-gradient(90deg, var(--primary), var(--secondary));
+  color: #fff;
+  padding: 10px 30px;
+  z-index: 1000;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+}
+
+.gnt-header-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  max-width: 1200px;
+  margin: auto;
+}
+
+.gnt-logo-area {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+}
+
+.gnt-logo {
+  height: 40px;
+}
+
+.gnt-title {
+  font-weight: 700;
+  font-size: 1.4rem;
+  letter-spacing: 0.5px;
+}
+
+.gnt-nav {
+  display: flex;
+  gap: 20px;
+}
+
+.gnt-nav button {
+  background: transparent;
+  border: none;
+  color: #fff;
+  font-weight: 500;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.gnt-nav button:hover {
+  color: #f3f4f6;
+  transform: translateY(-2px);
+}
+
+.logout-btn {
+  background: transparent;
+  border: 1px solid #ff4d4d;
+  color: #ff4d4d;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+.logout-btn:hover {
+  background: #ff4d4d;
+  color: white;
+}
