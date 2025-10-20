@@ -7,7 +7,7 @@ import { useTheme } from "../../context/ThemeContext"; // 👈 Importa o tema
 
 export default function Header() {
   const navigate = useNavigate();
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
   const { theme } = useTheme(); // 👈 Usa o tema atual
 
   const handleLogout = () => {
@@ -46,6 +46,20 @@ export default function Header() {
         </div>
 
         <nav className="gnt-nav" style={{ display: "flex", gap: "15px" }}>
+          {user?.role === "admin" && (
+            <button
+              onClick={() => navigate("/admin/users")}
+              style={{
+                background: "transparent",
+                border: "none",
+                color: theme === "dark" ? "#f8f9fa" : "#1f1f1f",
+                fontWeight: "600",
+                cursor: "pointer",
+              }}
+            >
+              Admin
+            </button>
+          )}
           <button
             onClick={() => navigate("/students")}
             style={{

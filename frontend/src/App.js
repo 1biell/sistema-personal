@@ -11,6 +11,7 @@ import SettingsPage from "./pages/SettingsPage"; // ⚙️ nova página
 import LoginPage from "./pages/LoginPage";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
+import AdminUsersPage from "./pages/AdminUsersPage";
 
 import "./styles/theme.css";
 
@@ -20,6 +21,13 @@ import "./styles/theme.css";
 function PrivateRoute({ children }) {
   const { isAuthenticated } = useAuth();
   return isAuthenticated ? children : <Navigate to="/login" replace />;
+}
+
+function AdminRoute({ children }) {
+  const { isAuthenticated, user } = useAuth();
+  if (!isAuthenticated) return <Navigate to="/login" replace />;
+  if (!user || user.role !== "admin") return <Navigate to="/students" replace />;
+  return children;
 }
 
 // ========================
@@ -34,6 +42,21 @@ function App() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/reset-password" element={<ResetPasswordPage />} />
+
+          {/* Admin */}
+          <Route
+            path="/admin/users"
+            element={
+              <AdminRoute>
+                <>
+                  <Header />
+                  <div className="main-content" style={{ paddingTop: "80px" }}>
+                    <AdminUsersPage />
+                  </div>
+                </>
+              </AdminRoute>
+            }
+          />
 
           {/* Dashboard */}
           <Route

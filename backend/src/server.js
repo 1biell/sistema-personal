@@ -12,6 +12,7 @@ import feedbackRoutes from "./routes/feedbackRoutes.js";
 import progressRoutes from "./routes/progressRoutes.js";
 import dashboardRoutes from "./routes/dashboardRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
+import adminRoutes from "./routes/adminRoutes.js";
 
 dotenv.config();
 const app = express();
@@ -27,6 +28,7 @@ app.use("/workouts", workoutsRoutes);
 app.use("/exercises", exercisesRoutes);
 app.use("/feedbacks", feedbackRoutes);
 app.use("/users", userRoutes);
+app.use("/admin", adminRoutes);
 app.use("/progress", progressRoutes);
 app.use("/dashboard", dashboardRoutes);
 

@@ -17,6 +17,15 @@ export const register = async (req, res) => {
       return res.status(400).json({ error: "Preencha todos os campos" });
     }
 
+    // Desabilita registro público após o primeiro usuário existir.
+    // Use rotas de admin para criar novos usuários.
+    const totalUsers = await prisma.user.count();
+    if (totalUsers > 0) {
+      return res
+        .status(403)
+        .json({ error: "Registro público desabilitado. Use a área do admin." });
+    }
+
     const userExists = await prisma.user.findUnique({ where: { email } });
     if (userExists) {
       return res.status(400).json({ error: "E-mail já cadastrado" });

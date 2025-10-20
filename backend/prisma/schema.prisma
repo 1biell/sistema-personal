@@ -21,6 +21,9 @@ model User {
   students     Student[] @relation("PersonalStudents")
   payments     Payment[]
   passwordResets PasswordReset[]
+  subscriptionPlan   String?
+  subscriptionDueDate DateTime?
+  active       Boolean  @default(true)
   createdAt    DateTime  @default(now())
 }
 
