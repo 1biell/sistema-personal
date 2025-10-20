@@ -1,7 +1,9 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import crypto from "crypto";
 import { PrismaClient } from "@prisma/client";
 import dotenv from "dotenv";
+import { sendPasswordResetEmail } from "../utils/mailer.js";
 
 dotenv.config();
 const prisma = new PrismaClient();
@@ -67,5 +69,65 @@ export const login = async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Erro no login" });
+  }
+};
+
+// Solicitar redefinição de senha
+export const forgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) return res.status(400).json({ error: "Informe o e-mail" });
+
+    const user = await prisma.user.findUnique({ where: { email } });
+    if (!user) {
+      return res.status(404).json({ error: "E-mail não encontrado" });
+    }
+
+    // invalidar tokens antigos do usuário
+    await prisma.passwordReset.updateMany({
+      where: { userId: user.id, used: false, expiresAt: { gt: new Date() } },
+      data: { used: true },
+    });
+
+    const token = crypto.randomBytes(32).toString("hex");
+    const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hora
+
+    await prisma.passwordReset.create({
+      data: { userId: user.id, token, expiresAt },
+    });
+
+    const appUrl = process.env.APP_URL || "http://localhost:3000";
+    const resetLink = `${appUrl}/reset-password?token=${token}`;
+
+    await sendPasswordResetEmail(user.email, resetLink);
+
+    res.json({ message: "Se o e-mail existir, enviaremos o link de redefinição." });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Erro ao solicitar redefinição" });
+  }
+};
+
+// Redefinir senha usando token
+export const resetPassword = async (req, res) => {
+  try {
+    const { token, newPassword } = req.body;
+    if (!token || !newPassword)
+      return res.status(400).json({ error: "Token e nova senha são obrigatórios" });
+
+    const reset = await prisma.passwordReset.findUnique({ where: { token } });
+    if (!reset || reset.used || reset.expiresAt < new Date()) {
+      return res.status(400).json({ error: "Token inválido ou expirado" });
+    }
+
+    const hashed = await bcrypt.hash(newPassword, 10);
+    await prisma.user.update({ where: { id: reset.userId }, data: { passwordHash: hashed } });
+    await prisma.passwordReset.update({ where: { token }, data: { used: true } });
+
+    res.json({ message: "Senha redefinida com sucesso" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Erro ao redefinir senha" });
   }
 };

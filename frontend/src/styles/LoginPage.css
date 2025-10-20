@@ -114,6 +114,16 @@
   font-size: 14px;
 }
 
+.login-success {
+  margin: 6px 0 0;
+  color: #eaffea;
+  background: rgba(25, 135, 84, 0.2);
+  border: 1px solid rgba(25,135,84,0.45);
+  padding: 8px 10px;
+  border-radius: 8px;
+  font-size: 14px;
+}
+
 .login-button {
   margin-top: 10px;
   width: 100%;

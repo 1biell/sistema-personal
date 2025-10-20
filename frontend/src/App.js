@@ -9,6 +9,8 @@ import StudentDetailsPage from "./pages/StudentDetailsPage";
 import DashboardPage from "./pages/DashboardPage";
 import SettingsPage from "./pages/SettingsPage"; // ⚙️ nova página
 import LoginPage from "./pages/LoginPage";
+import ForgotPasswordPage from "./pages/ForgotPasswordPage";
+import ResetPasswordPage from "./pages/ResetPasswordPage";
 
 import "./styles/theme.css";
 
@@ -30,6 +32,8 @@ function App() {
         <Routes>
           {/* Login */}
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
 
           {/* Dashboard */}
           <Route

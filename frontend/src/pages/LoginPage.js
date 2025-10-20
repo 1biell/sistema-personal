@@ -87,7 +87,7 @@ export default function LoginPage() {
             <button
               type="button"
               className="login-link"
-              onClick={(e) => e.preventDefault()}
+              onClick={() => navigate("/forgot-password")}
             >
               Esqueceu a senha?
             </button>
