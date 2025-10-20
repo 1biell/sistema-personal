@@ -122,3 +122,20 @@ export const updateUser = async (req, res) => {
   }
 };
 
+// Excluir usuário (somente admin)
+export const deleteUser = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const user = await prisma.user.findUnique({ where: { id } });
+    if (!user) return res.status(404).json({ error: "Usuário não encontrado" });
+    if (user.role === "admin") return res.status(403).json({ error: "Não é permitido excluir o admin" });
+
+    await prisma.user.delete({ where: { id } });
+    res.json({ message: "Usuário excluído com sucesso" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Erro ao excluir usuário" });
+  }
+};
+
+
