@@ -1,5 +1,4 @@
-import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+﻿import React, { useEffect, useState } from "react";
 import { Line } from "react-chartjs-2";
 import "../../styles/student.css";
 
@@ -19,7 +18,10 @@ ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, T
 export default function StudentProgress({ id, token }) {
   const [progressList, setProgressList] = useState([]);
   const [loadingProgress, setLoadingProgress] = useState(false);
-  const navigate = useNavigate();
+  const [showForm, setShowForm] = useState(false);
+  const [form, setForm] = useState({ weight: "", chest: "", waist: "", arm: "", leg: "", observation: "" });
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     const fetchProgress = async () => {
@@ -39,39 +41,27 @@ export default function StudentProgress({ id, token }) {
     fetchProgress();
   }, [id, token]);
 
-  const handleAddProgress = async () => {
-    navigate(`/students/${id}/progress/new`);
-    return;
-    const weight = prompt("Peso (kg):");
-    const chest = prompt("Tórax (cm):");
-    const waist = prompt("Cintura (cm):");
-    const arm = prompt("Braço (cm):");
-    const leg = prompt("Pernas (cm):");
-    const observation = prompt("Observação:");
+  const openProgressForm = () => {
+    setShowForm(true);
+    setForm({ weight: "", chest: "", waist: "", arm: "", leg: "", observation: "" });
+    setError("");
+  };
 
-    if (!weight) return;
-
+  const submitProgress = async (e) => {
+    e.preventDefault();
+    if (!form.weight) { setError("Informe o peso (kg)."); return; }
     try {
+      setSaving(true);
       const res = await fetch(`http://localhost:3333/progress/${id}`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ weight, chest, waist, arm, leg, observation }),
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify(form),
       });
-
       const data = await res.json();
-      if (res.ok) {
-        alert("Progresso registrado com sucesso!");
-        setProgressList((prev) => [data.progress, ...prev]);
-      } else {
-        alert(data.error || "Erro ao registrar progresso");
-      }
-    } catch (err) {
-      alert("Erro ao registrar progresso");
-      console.error(err);
-    }
+      if (!res.ok) throw new Error(data?.error || "Erro ao registrar progresso");
+      setProgressList((prev) => [data.progress, ...prev]);
+      setShowForm(false);
+    } catch (err) { setError(err.message); } finally { setSaving(false); }
   };
 
   const chartData = {
@@ -88,11 +78,57 @@ export default function StudentProgress({ id, token }) {
   return (
     <div>
       <div className="d-flex justify-content-between align-items-center">
-        <h5>📈 Progresso</h5>
-        <button className="btn btn-outline-primary" onClick={handleAddProgress}>
+        <h5>Progresso</h5>
+        <button className="btn btn-outline-primary" onClick={openProgressForm}>
           + Novo Registro
         </button>
       </div>
+
+      {showForm && (
+        <div className="overlay-backdrop">
+          <div className="card overlay-card">
+            <button className="overlay-close" aria-label="Fechar" onClick={()=>setShowForm(false)}>×</button>
+            <div className="card-body">
+              <div className="overlay-title mb-3">
+                <h5 className="mb-0">Novo Registro de Progresso</h5>
+              </div>
+              {error && <div className="alert alert-danger py-2">{error}</div>}
+              <form onSubmit={submitProgress}>
+                <div className="row g-3">
+                  <div className="col-sm-4">
+                    <label className="form-label">Peso (kg) *</label>
+                    <input type="number" step="0.1" className="form-control" value={form.weight} onChange={(e)=>setForm({...form, weight: e.target.value})} />
+                  </div>
+                  <div className="col-sm-4">
+                    <label className="form-label">Tórax (cm)</label>
+                    <input type="number" step="0.1" className="form-control" value={form.chest} onChange={(e)=>setForm({...form, chest: e.target.value})} />
+                  </div>
+                  <div className="col-sm-4">
+                    <label className="form-label">Cintura (cm)</label>
+                    <input type="number" step="0.1" className="form-control" value={form.waist} onChange={(e)=>setForm({...form, waist: e.target.value})} />
+                  </div>
+                  <div className="col-sm-4">
+                    <label className="form-label">Braço (cm)</label>
+                    <input type="number" step="0.1" className="form-control" value={form.arm} onChange={(e)=>setForm({...form, arm: e.target.value})} />
+                  </div>
+                  <div className="col-sm-4">
+                    <label className="form-label">Pernas (cm)</label>
+                    <input type="number" step="0.1" className="form-control" value={form.leg} onChange={(e)=>setForm({...form, leg: e.target.value})} />
+                  </div>
+                  <div className="col-12">
+                    <label className="form-label">Observação</label>
+                    <textarea className="form-control" rows={3} value={form.observation} onChange={(e)=>setForm({...form, observation: e.target.value})} />
+                  </div>
+                </div>
+                <div className="d-flex justify-content-end gap-2 mt-4">
+                  <button type="button" className="btn btn-outline-secondary" onClick={()=>setShowForm(false)}>Cancelar</button>
+                  <button type="submit" className="btn btn-success" disabled={saving}>{saving ? "Salvando..." : "Salvar"}</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
 
       {loadingProgress ? (
         <p>Carregando progresso...</p>

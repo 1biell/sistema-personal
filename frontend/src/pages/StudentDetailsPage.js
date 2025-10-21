@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 
 // ✅ Corrigido: os componentes ficam em src/components/student/
 import StudentInfo from "../components/student/StudentInfo";
-import StudentWorkouts from "../components/student/StudentWorkouts";
+import StudentWorkouts from "../components/student/StudentWorkoutsNew";
 import StudentFeedbacks from "../components/student/StudentFeedbacks";
 import StudentProgress from "../components/student/StudentProgress";
 
