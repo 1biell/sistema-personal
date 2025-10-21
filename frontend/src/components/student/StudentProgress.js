@@ -1,4 +1,5 @@
 ﻿import React, { useEffect, useState } from "react";
+import { useAuth } from "../../context/AuthContext";
 import { Line } from "react-chartjs-2";
 import "../../styles/student.css";
 
@@ -16,6 +17,9 @@ import {
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
 export default function StudentProgress({ id, token }) {
+  const { user } = useAuth();
+  const isStudent = user?.role === "student";
+
   const [progressList, setProgressList] = useState([]);
   const [loadingProgress, setLoadingProgress] = useState(false);
   const [showForm, setShowForm] = useState(false);
@@ -79,9 +83,11 @@ export default function StudentProgress({ id, token }) {
     <div>
       <div className="d-flex justify-content-between align-items-center">
         <h5>Progresso</h5>
-        <button className="btn btn-outline-primary" onClick={openProgressForm}>
-          + Novo Registro
-        </button>
+        {!isStudent && (
+          <button className="btn btn-outline-primary" onClick={openProgressForm}>
+            + Novo Registro
+          </button>
+        )}
       </div>
 
       {showForm && (

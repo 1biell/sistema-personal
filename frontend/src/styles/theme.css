@@ -176,3 +176,11 @@ textarea:focus {
 @keyframes overlayIn {
   to { opacity: 1; transform: translateY(0) scale(1); }
 }
+
+/* Layout de impressão de treinos */
+@media print {
+  header, .gnt-header, .nav, .nav-tabs, .btn, .overlay-backdrop { display: none !important; }
+  .main-content { padding: 0 !important; }
+  .card { border: 0; box-shadow: none; }
+  body { background: #fff; color: #000; }
+}

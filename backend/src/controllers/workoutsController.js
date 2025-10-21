@@ -11,10 +11,13 @@ export const getWorkoutsByStudent = async (req, res) => {
     const { studentId } = req.params;
     const personalId = req.user.id;
 
-    // Verifica se o aluno pertence ao personal logado
-    const student = await prisma.student.findFirst({
-      where: { id: studentId, personalId },
-    });
+    // Verifica se o aluno pertence ao personal logado ou é o próprio aluno
+    let student = null;
+    if (req.user.role === "student") {
+      student = await prisma.student.findFirst({ where: { id: studentId, userId: req.user.id } });
+    } else {
+      student = await prisma.student.findFirst({ where: { id: studentId, personalId } });
+    }
 
     if (!student) {
       return res
@@ -44,9 +47,7 @@ export const createWorkout = async (req, res) => {
     const { title, description, dayOfWeek } = req.body;
 
     // Verifica se o aluno pertence ao personal logado
-    const student = await prisma.student.findFirst({
-      where: { id: studentId, personalId },
-    });
+    const student = await prisma.student.findFirst({ where: { id: studentId, personalId } });
 
     if (!student) {
       return res

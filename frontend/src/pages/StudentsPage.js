@@ -9,6 +9,7 @@ export default function StudentsPage() {
   const [newStudent, setNewStudent] = useState({
     name: "",
     email: "",
+    password: "",
     age: "",
     weight: "",
     height: "",
@@ -66,6 +67,7 @@ export default function StudentsPage() {
         setNewStudent({
           name: "",
           email: "",
+          password: "",
           age: "",
           weight: "",
           height: "",
@@ -173,6 +175,7 @@ export default function StudentsPage() {
                 {[
                   { label: "Nome", name: "name", type: "text" },
                   { label: "Email", name: "email", type: "email" },
+                  { label: "Senha (para o aluno)", name: "password", type: "password" },
                   { label: "Idade", name: "age", type: "number" },
                   { label: "Peso (kg)", name: "weight", type: "number" },
                   { label: "Altura (m)", name: "height", type: "number", step: "0.01" },
@@ -213,3 +216,4 @@ export default function StudentsPage() {
     </div>
   );
 }
+

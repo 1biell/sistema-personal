@@ -10,9 +10,12 @@ export const getFeedbacksByStudent = async (req, res) => {
     const { studentId } = req.params;
     const personalId = req.user.id;
 
-    const student = await prisma.student.findFirst({
-      where: { id: studentId, personalId },
-    });
+    let student = null;
+    if (req.user.role === "student") {
+      student = await prisma.student.findFirst({ where: { id: studentId, userId: req.user.id } });
+    } else {
+      student = await prisma.student.findFirst({ where: { id: studentId, personalId } });
+    }
 
     if (!student) {
       return res.status(404).json({ error: "Aluno não encontrado" });
@@ -38,6 +41,15 @@ export const createFeedback = async (req, res) => {
   try {
     const { studentId } = req.params;
     const { workoutId, rating, comment } = req.body;
+
+    // Permitir personal dono ou o próprio aluno
+    if (req.user.role === "student") {
+      const owned = await prisma.student.findFirst({ where: { id: studentId, userId: req.user.id } });
+      if (!owned) return res.status(403).json({ error: "Acesso negado" });
+    } else {
+      const owned = await prisma.student.findFirst({ where: { id: studentId, personalId: req.user.id } });
+      if (!owned) return res.status(403).json({ error: "Aluno não pertence a este personal" });
+    }
 
     const feedback = await prisma.feedback.create({
       data: {

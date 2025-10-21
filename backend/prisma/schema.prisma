@@ -10,21 +10,23 @@ datasource db {
 enum Role {
   admin
   personal
+  student
 }
 
 model User {
-  id           String    @id @default(uuid())
-  name         String
-  email        String    @unique
-  passwordHash String
-  role         Role
-  students     Student[] @relation("PersonalStudents")
-  payments     Payment[]
-  passwordResets PasswordReset[]
-  subscriptionPlan   String?
+  id                  String          @id @default(uuid())
+  name                String
+  email               String          @unique
+  passwordHash        String
+  role                Role
+  students            Student[]       @relation("PersonalStudents")
+  studentProfile      Student?        @relation("StudentUser")
+  payments            Payment[]
+  passwordResets      PasswordReset[]
+  subscriptionPlan    String?
   subscriptionDueDate DateTime?
-  active       Boolean  @default(true)
-  createdAt    DateTime  @default(now())
+  active              Boolean         @default(true)
+  createdAt           DateTime        @default(now())
 }
 
 model Student {
@@ -33,6 +35,8 @@ model Student {
   personalId String
   name       String
   email      String     @unique
+  user       User?      @relation("StudentUser", fields: [userId], references: [id])
+  userId     String?    @unique
   phone      String?
   age        Int?
   weight     Float?
@@ -111,10 +115,9 @@ model Progress {
   waist       Float?
   chest       Float?
   observation String?
-  photoUrl    String?  
+  photoUrl    String?
   date        DateTime @default(now())
 }
-
 
 model Payment {
   id         String   @id @default(uuid())

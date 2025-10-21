@@ -34,11 +34,11 @@ export default function LoginPage() {
       localStorage.setItem("token", data.token);
       localStorage.setItem("user", JSON.stringify(data.user));
 
-      // 🧩 Atualiza o contexto global
+      // Atualiza o contexto global
       login(data.token, data.user);
 
       // ✅ Redireciona para o painel
-      navigate("/students");
+      if (data.user?.role === "admin") { navigate("/admin/users"); } else if (data.user?.role === "student" && data.user?.studentId) { navigate(`/students/${data.user.studentId}`); } else { navigate("/students"); }
     } catch (err) {
       console.error(err);
       setError("Erro ao conectar ao servidor");
@@ -99,3 +99,4 @@ export default function LoginPage() {
     </div>
   );
 }
+

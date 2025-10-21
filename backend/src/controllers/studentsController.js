@@ -1,5 +1,6 @@
 // Controller responsável por gerenciar os alunos (students)
 import { PrismaClient } from "@prisma/client";
+import bcrypt from "bcryptjs";
 const prisma = new PrismaClient();
 
 /**
@@ -28,7 +29,7 @@ export const getStudents = async (req, res) => {
 export const createStudent = async (req, res) => {
   try {
     const personalId = req.user.id; // ID do personal autenticado
-    const { name, email, phone, age, weight, height, goal } = req.body;
+    const { name, email, phone, age, weight, height, goal, password } = req.body;
 
     if (!name || !email) {
       return res.status(400).json({ error: "Nome e email são obrigatórios" });
@@ -42,11 +43,25 @@ export const createStudent = async (req, res) => {
       return res.status(400).json({ error: "Aluno com esse email já existe" });
     }
 
+    // Criar usuário do aluno para login
+    if (!password) {
+      return res.status(400).json({ error: "Senha do aluno é obrigatória" });
+    }
+    const userExists = await prisma.user.findUnique({ where: { email } });
+    if (userExists) {
+      return res.status(400).json({ error: "Já existe um usuário com este e-mail" });
+    }
+    const passwordHash = await bcrypt.hash(password, 10);
+    const user = await prisma.user.create({
+      data: { name, email, passwordHash, role: "student" },
+    });
+
     const student = await prisma.student.create({
       data: {
         personalId,
         name,
         email,
+        userId: user.id,
         phone,
         age: Number(age) || null,
         weight: Number(weight) || null,
@@ -127,9 +142,12 @@ export const getStudentById = async (req, res) => {
     const { id } = req.params;
     const personalId = req.user.id; // ID do personal autenticado
 
-    const student = await prisma.student.findFirst({
-      where: { id, personalId },
-    });
+    let student = null;
+    if (req.user.role === "student") {
+      student = await prisma.student.findFirst({ where: { id, userId: req.user.id } });
+    } else {
+      student = await prisma.student.findFirst({ where: { id, personalId } });
+    }
 
     if (!student) {
       return res.status(404).json({ error: "Aluno não encontrado" });

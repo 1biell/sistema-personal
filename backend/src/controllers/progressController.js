@@ -11,10 +11,13 @@ export const getProgressByStudent = async (req, res) => {
     const { studentId } = req.params;
     const personalId = req.user.id;
 
-    // Verifica se o aluno pertence ao personal logado
-    const student = await prisma.student.findFirst({
-      where: { id: studentId, personalId },
-    });
+    // Permite leitura ao personal dono ou ao próprio aluno
+    let student = null;
+    if (req.user.role === "student") {
+      student = await prisma.student.findFirst({ where: { id: studentId, userId: req.user.id } });
+    } else {
+      student = await prisma.student.findFirst({ where: { id: studentId, personalId } });
+    }
 
     if (!student) {
       return res.status(404).json({
@@ -44,10 +47,8 @@ export const createProgress = async (req, res) => {
     const personalId = req.user.id;
     const { weight, chest, waist, arm, leg, observation } = req.body;
 
-    // Verifica se o aluno pertence ao personal logado
-    const student = await prisma.student.findFirst({
-      where: { id: studentId, personalId },
-    });
+    // Criação: por padrão somente personal dono
+    const student = await prisma.student.findFirst({ where: { id: studentId, personalId } });
 
     if (!student) {
       return res.status(404).json({

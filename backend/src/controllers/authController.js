@@ -64,8 +64,14 @@ export const login = async (req, res) => {
       return res.status(401).json({ error: "Senha incorreta" });
     }
 
+    let studentId = null;
+    if (user.role === "student") {
+      const student = await prisma.student.findFirst({ where: { userId: user.id } });
+      studentId = student?.id || null;
+    }
+
     const token = jwt.sign(
-      { id: user.id, role: user.role },
+      { id: user.id, role: user.role, ...(studentId ? { studentId } : {}) },
       process.env.JWT_SECRET,
       { expiresIn: "7d" }
     );
@@ -73,7 +79,7 @@ export const login = async (req, res) => {
     res.json({
       message: "Login realizado com sucesso",
       token,
-      user: { id: user.id, name: user.name, email: user.email, role: user.role },
+      user: { id: user.id, name: user.name, email: user.email, role: user.role, studentId },
     });
   } catch (error) {
     console.error(error);
