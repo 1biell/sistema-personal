@@ -7,7 +7,7 @@ export default function StudentWorkouts({ id, token }) {
   const isStudent = user?.role === "student";
 
   const [workouts, setWorkouts] = useState([]);
-  const [loadingWorkouts, setLoadingWorkouts] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [title, setTitle] = useState("");
   const [dayOfWeek, setDayOfWeek] = useState("");
@@ -16,21 +16,21 @@ export default function StudentWorkouts({ id, token }) {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    const fetchWorkouts = async () => {
+    const load = async () => {
       try {
-        setLoadingWorkouts(true);
+        setLoading(true);
         const res = await fetch(`http://localhost:3333/workouts/${id}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         const data = await res.json();
         if (Array.isArray(data)) setWorkouts(data);
-      } catch (err) {
-        console.error("Erro ao buscar treinos:", err);
+      } catch (e) {
+        console.error("Erro ao buscar treinos", e);
       } finally {
-        setLoadingWorkouts(false);
+        setLoading(false);
       }
     };
-    fetchWorkouts();
+    load();
   }, [id, token]);
 
   const openForm = () => {
@@ -43,33 +43,28 @@ export default function StudentWorkouts({ id, token }) {
 
   const submitWorkout = async (e) => {
     e.preventDefault();
-    if (!title.trim()) {
-      setError("Informe um título para o treino.");
-      return;
-    }
+    if (!title.trim()) { setError("Informe um titulo para o treino."); return; }
     try {
       setSaving(true);
       const res = await fetch(`http://localhost:3333/workouts/${id}`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify({ title, description, dayOfWeek }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data?.error || "Erro ao criar treino");
       setWorkouts((prev) => [...prev, data.workout]);
       setShowForm(false);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setSaving(false);
-    }
+    } catch (err) { setError(err.message); } finally { setSaving(false); }
   };
 
   const handlePrint = () => {
-    window.print();
+    const win = window.open("", "_blank");
+    if (!win) return window.print();
+    const styles = `<style>body{font-family:system-ui,Segoe UI,Roboto,sans-serif;padding:24px}h1{margin:0 0 8px}.muted{color:#666}.w{margin-bottom:12px}.w h3{margin:0 0 4px}hr{margin:16px 0;border:0;border-top:1px solid #ddd}</style>`;
+    const listHtml = workouts.map(w=>`<div class="w"><h3>${w.title}</h3><div class="muted">${w.dayOfWeek||""}</div><div>${w.description||""}</div></div>`).join("");
+    win.document.write(`<!doctype html><html><head><meta charset="utf-8">${styles}<title>Meus Treinos</title></head><body><h1>Meus Treinos</h1><hr/>${listHtml}</body></html>`);
+    win.document.close(); win.focus(); win.print(); win.close();
   };
 
   return (
@@ -77,7 +72,7 @@ export default function StudentWorkouts({ id, token }) {
       <div className="d-flex justify-content-between align-items-center">
         <h5>Treinos</h5>
         <div className="d-flex gap-2">
-          <button className="btn btn-outline-secondary" onClick={handlePrint}>Imprimir</button>
+          <button className="btn btn-outline-secondary" onClick={handlePrint}>Baixar meus treinos (PDF)</button>
           {!isStudent && (
             <button className="btn btn-outline-primary" onClick={openForm}>+ Novo Treino</button>
           )}
@@ -89,14 +84,12 @@ export default function StudentWorkouts({ id, token }) {
           <div className="card overlay-card">
             <button className="overlay-close" aria-label="Fechar" onClick={()=>setShowForm(false)}>×</button>
             <div className="card-body">
-              <div className="overlay-title mb-3">
-                <h5 className="mb-0">Novo Treino</h5>
-              </div>
+              <div className="overlay-title mb-3"><h5 className="mb-0">Novo Treino</h5></div>
               {error && <div className="alert alert-danger py-2">{error}</div>}
               <form onSubmit={submitWorkout}>
                 <div className="row g-3">
                   <div className="col-sm-6">
-                    <label className="form-label">Título *</label>
+                    <label className="form-label">Titulo *</label>
                     <input className="form-control" value={title} onChange={(e)=>setTitle(e.target.value)} />
                   </div>
                   <div className="col-sm-6">
@@ -104,7 +97,7 @@ export default function StudentWorkouts({ id, token }) {
                     <input className="form-control" value={dayOfWeek} onChange={(e)=>setDayOfWeek(e.target.value)} />
                   </div>
                   <div className="col-12">
-                    <label className="form-label">Descrição</label>
+                    <label className="form-label">Descricao</label>
                     <textarea className="form-control" rows={4} value={description} onChange={(e)=>setDescription(e.target.value)} />
                   </div>
                 </div>
@@ -118,7 +111,7 @@ export default function StudentWorkouts({ id, token }) {
         </div>
       )}
 
-      {loadingWorkouts ? (
+      {loading ? (
         <p>Carregando...</p>
       ) : workouts.length === 0 ? (
         <p>Nenhum treino cadastrado.</p>
@@ -126,7 +119,7 @@ export default function StudentWorkouts({ id, token }) {
         <ul>
           {workouts.map((w) => (
             <li key={w.id}>
-              <strong>{w.title}</strong> — {w.dayOfWeek || "Dia não definido"}
+              <strong>{w.title}</strong> — {w.dayOfWeek || "Dia nao definido"}
               <br />
               <small>{w.description}</small>
             </li>

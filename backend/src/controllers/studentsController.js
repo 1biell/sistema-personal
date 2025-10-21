@@ -144,9 +144,15 @@ export const getStudentById = async (req, res) => {
 
     let student = null;
     if (req.user.role === "student") {
-      student = await prisma.student.findFirst({ where: { id, userId: req.user.id } });
+      student = await prisma.student.findFirst({
+        where: { id, userId: req.user.id },
+        include: { personal: { select: { id: true, name: true, email: true } } },
+      });
     } else {
-      student = await prisma.student.findFirst({ where: { id, personalId } });
+      student = await prisma.student.findFirst({
+        where: { id, personalId },
+        include: { personal: { select: { id: true, name: true, email: true } } },
+      });
     }
 
     if (!student) {
