@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
-}
-
+
+
+
       {showForm && (
         <div className="overlay-backdrop">
           <div className="card overlay-card">
@@ -10,7 +11,7 @@ import React, { useEffect, useState } from "react";
               <form onSubmit={submitWorkout}>
                 <div className="row g-3">
                   <div className="col-sm-6">
-                    <label className="form-label">Título *</label>
+                    <label className="form-label">Tï¿½tulo *</label>
                     <input className="form-control" value={title} onChange={(e)=>setTitle(e.target.value)} />
                   </div>
                   <div className="col-sm-6">
@@ -18,7 +19,7 @@ import React, { useEffect, useState } from "react";
                     <input className="form-control" value={dayOfWeek} onChange={(e)=>setDayOfWeek(e.target.value)} />
                   </div>
                   <div className="col-12">
-                    <label className="form-label">Descrição</label>
+                    <label className="form-label">Descriï¿½ï¿½o</label>
                     <textarea className="form-control" rows={4} value={description} onChange={(e)=>setDescription(e.target.value)} />
                   </div>
                 </div>
