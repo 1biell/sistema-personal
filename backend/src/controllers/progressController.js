@@ -1,5 +1,6 @@
 // Controller responsável por gerenciar o progresso físico dos alunos
 import { PrismaClient } from "@prisma/client";
+import { sendEmail } from "../utils/notify.js";
 const prisma = new PrismaClient();
 
 /**
@@ -68,7 +69,25 @@ export const createProgress = async (req, res) => {
       },
     });
 
+    // Responde imediatamente
     res.status(201).json({ message: "Progresso registrado com sucesso", progress });
+
+    // E-mail assíncrono
+    setImmediate(async () => {
+      try {
+        const appUrl = process.env.APP_URL || "http://localhost:3000";
+        const subject = "Novo registro de progresso";
+        const html = `
+          <p>Olá ${student.name},</p>
+          <p>Seu personal registrou um novo progresso em seu acompanhamento.</p>
+          <p>Veja os detalhes no app:</p>
+          <p><a href="${appUrl}" target="_blank" rel="noopener">Abrir o app</a></p>
+        `;
+        await sendEmail(student.email, subject, html);
+      } catch (e) {
+        console.error("Falha ao enviar e-mail de progresso:", e);
+      }
+    });
   } catch (error) {
     console.error("Erro ao criar progresso:", error);
     res.status(500).json({ error: "Erro ao criar progresso" });

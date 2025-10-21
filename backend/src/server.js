@@ -14,7 +14,7 @@ import dashboardRoutes from "./routes/dashboardRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
 
-dotenv.config();
+dotenv.config({ quiet: true });
 const app = express();
 const prisma = new PrismaClient();
 
@@ -31,6 +31,8 @@ app.use("/users", userRoutes);
 app.use("/admin", adminRoutes);
 app.use("/progress", progressRoutes);
 app.use("/dashboard", dashboardRoutes);
+
+// Chat removido
 
 app.get("/", (req, res) => res.send("API do Sistema Personal 🚀"));
 

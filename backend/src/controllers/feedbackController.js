@@ -1,4 +1,5 @@
 import { PrismaClient } from "@prisma/client";
+import { sendEmail } from "../utils/notify.js";
 const prisma = new PrismaClient();
 
 /**
@@ -60,7 +61,49 @@ export const createFeedback = async (req, res) => {
       },
     });
 
+    // Responde imediatamente
     res.status(201).json({ message: "Feedback registrado com sucesso", feedback });
+
+    // Notificações assíncronas: aluno -> personal, personal -> aluno
+    setImmediate(async () => {
+      try {
+        const appUrl = process.env.APP_URL || "http://localhost:3000";
+        if (req.user.role === "student") {
+          const studentWithPersonal = await prisma.student.findUnique({
+            where: { id: studentId },
+            include: { personal: true },
+          });
+          if (studentWithPersonal?.personal?.email) {
+            const subject = "Novo feedback do aluno";
+            const html = `
+              <p>Olá ${studentWithPersonal.personal.name || ""},</p>
+              <p>Seu aluno ${studentWithPersonal.name} enviou um novo feedback.</p>
+              ${rating ? `<p><strong>Avaliação:</strong> ${Number(rating)}/5</p>` : ""}
+              ${comment ? `<p><strong>Comentário:</strong> ${comment}</p>` : ""}
+              <p>Veja os detalhes no app:</p>
+              <p><a href="${appUrl}" target="_blank" rel="noopener">Abrir o app</a></p>
+            `;
+            await sendEmail(studentWithPersonal.personal.email, subject, html);
+          }
+        } else {
+          const studentData = await prisma.student.findUnique({ where: { id: studentId } });
+          if (studentData?.email) {
+            const subject = "Novo feedback do personal";
+            const html = `
+              <p>Olá ${studentData.name},</p>
+              <p>Você recebeu um novo feedback do seu personal.</p>
+              ${rating ? `<p><strong>Avaliação:</strong> ${Number(rating)}/5</p>` : ""}
+              ${comment ? `<p><strong>Comentário:</strong> ${comment}</p>` : ""}
+              <p>Veja os detalhes no app:</p>
+              <p><a href="${appUrl}" target="_blank" rel="noopener">Abrir o app</a></p>
+            `;
+            await sendEmail(studentData.email, subject, html);
+          }
+        }
+      } catch (e) {
+        console.error("Falha ao enviar e-mail de feedback:", e);
+      }
+    });
   } catch (error) {
     console.error("Erro ao criar feedback:", error);
     res.status(500).json({ error: "Erro ao criar feedback" });

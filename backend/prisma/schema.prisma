@@ -30,24 +30,24 @@ model User {
 }
 
 model Student {
-  id         String     @id @default(uuid())
-  personal   User       @relation("PersonalStudents", fields: [personalId], references: [id])
-  personalId String
-  name       String
-  email      String     @unique
-  user       User?      @relation("StudentUser", fields: [userId], references: [id])
-  userId     String?    @unique
-  phone      String?
-  age        Int?
-  weight     Float?
-  height     Float?
-  goal       String?
-  workouts   Workout[]
-  diets      Diet[]
-  feedbacks  Feedback[]
-  progress   Progress[]
-  payments   Payment[]
-  createdAt  DateTime   @default(now())
+  id           String        @id @default(uuid())
+  personal     User          @relation("PersonalStudents", fields: [personalId], references: [id])
+  personalId   String
+  name         String
+  email        String        @unique
+  user         User?         @relation("StudentUser", fields: [userId], references: [id])
+  userId       String?       @unique
+  phone        String?
+  age          Int?
+  weight       Float?
+  height       Float?
+  goal         String?
+  workouts     Workout[]
+  diets        Diet[]
+  feedbacks    Feedback[]
+  progress     Progress[]
+  payments     Payment[]
+  createdAt    DateTime      @default(now())
 }
 
 model Workout {

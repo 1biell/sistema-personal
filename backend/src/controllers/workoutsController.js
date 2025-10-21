@@ -1,5 +1,6 @@
 // Controller responsável por gerenciar os treinos (workouts)
 import { PrismaClient } from "@prisma/client";
+import { sendEmail } from "../utils/notify.js";
 const prisma = new PrismaClient();
 
 /**
@@ -64,9 +65,28 @@ export const createWorkout = async (req, res) => {
       },
     });
 
+    // Responde imediatamente ao cliente
     res
       .status(201)
       .json({ message: "Treino criado com sucesso", workout });
+
+    // Dispara e-mail de forma assíncrona (não bloqueia resposta)
+    setImmediate(async () => {
+      try {
+        const appUrl = process.env.APP_URL || "http://localhost:3000";
+        const subject = "Novo treino disponível";
+        const html = `
+          <p>Olá ${student.name},</p>
+          <p>Seu personal acabou de cadastrar um novo treino.</p>
+          <p><strong>Título:</strong> ${title}</p>
+          <p>Você pode acessar o app para ver os detalhes:</p>
+          <p><a href="${appUrl}" target="_blank" rel="noopener">Abrir o app</a></p>
+        `;
+        await sendEmail(student.email, subject, html);
+      } catch (e) {
+        console.error("Falha ao enviar e-mail de novo treino:", e);
+      }
+    });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Erro ao criar treino" });
