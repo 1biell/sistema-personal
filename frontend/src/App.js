@@ -12,6 +12,9 @@ import LoginPage from "./pages/LoginPage";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
 import AdminUsersPage from "./pages/AdminUsersPage";
+import NewWorkoutPage from "./pages/NewWorkoutPage";
+import NewProgressPage from "./pages/NewProgressPage";
+import NewFeedbackPage from "./pages/NewFeedbackPage";
 
 import "./styles/theme.css";
 
@@ -119,6 +122,45 @@ function App() {
           />
 
           {/* Redirecionamento padrão */}
+          <Route
+            path="/students/:id/workouts/new"
+            element={
+              <PrivateRoute>
+                <>
+                  <Header />
+                  <div className="main-content" style={{ paddingTop: "80px" }}>
+                    <NewWorkoutPage />
+                  </div>
+                </>
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/students/:id/progress/new"
+            element={
+              <PrivateRoute>
+                <>
+                  <Header />
+                  <div className="main-content" style={{ paddingTop: "80px" }}>
+                    <NewProgressPage />
+                  </div>
+                </>
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/students/:id/feedback/new"
+            element={
+              <PrivateRoute>
+                <>
+                  <Header />
+                  <div className="main-content" style={{ paddingTop: "80px" }}>
+                    <NewFeedbackPage />
+                  </div>
+                </>
+              </PrivateRoute>
+            }
+          />
           <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
       </Router>

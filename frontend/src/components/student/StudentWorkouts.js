@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import "../../styles/student.css";
 
 
 export default function StudentWorkouts({ id, token }) {
   const [workouts, setWorkouts] = useState([]);
   const [loadingWorkouts, setLoadingWorkouts] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchWorkouts = async () => {
@@ -25,6 +27,8 @@ export default function StudentWorkouts({ id, token }) {
   }, [id, token]);
 
   const handleAddWorkout = async () => {
+    navigate(`/students/${id}/workouts/new`);
+    return;
     const title = prompt("Título do treino:");
     const description = prompt("Descrição do treino:");
     const dayOfWeek = prompt("Dia da semana (ex: segunda):");

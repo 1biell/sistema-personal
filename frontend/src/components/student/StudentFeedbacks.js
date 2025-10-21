@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import "../../styles/student.css";
 
 export default function StudentFeedbacks({ id, token }) {
   const [feedbacks, setFeedbacks] = useState([]);
   const [loadingFeedbacks, setLoadingFeedbacks] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchFeedbacks = async () => {
@@ -24,6 +26,8 @@ export default function StudentFeedbacks({ id, token }) {
   }, [id, token]);
 
   const handleAddFeedback = async () => {
+    navigate(`/students/${id}/feedback/new`);
+    return;
     const rating = prompt("Nota de 1 a 10:");
     const comment = prompt("Comentário (opcional):");
     if (!rating) return;

@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Line } from "react-chartjs-2";
 import "../../styles/student.css";
 
@@ -18,6 +19,7 @@ ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, T
 export default function StudentProgress({ id, token }) {
   const [progressList, setProgressList] = useState([]);
   const [loadingProgress, setLoadingProgress] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchProgress = async () => {
@@ -38,6 +40,8 @@ export default function StudentProgress({ id, token }) {
   }, [id, token]);
 
   const handleAddProgress = async () => {
+    navigate(`/students/${id}/progress/new`);
+    return;
     const weight = prompt("Peso (kg):");
     const chest = prompt("Tórax (cm):");
     const waist = prompt("Cintura (cm):");

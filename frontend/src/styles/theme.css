@@ -96,3 +96,12 @@ input::placeholder,
 textarea::placeholder {
   color: var(--subtext-color);
 }
+
+/* Página com card centralizado (estilo "nova janela") */
+.center-card-wrapper {
+  min-height: calc(100vh - 120px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
