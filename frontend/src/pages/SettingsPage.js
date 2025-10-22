@@ -19,24 +19,39 @@ export default function SettingsPage() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [subscription, setSubscription] = useState({ plan: null, dueDate: null, active: false, remainingDays: 0, studentLimit: null });
+  const [subLoading, setSubLoading] = useState(false);
+  const [subError, setSubError] = useState("");
 
-  useEffect(() => {
-    const fetchSubscription = async () => {
-      try {
-        const token = localStorage.getItem("token");
-        if (!token) return;
-        const res = await fetch("http://localhost:3333/users/subscription", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+  const fetchSubscription = async () => {
+    setSubError("");
+    setSubLoading(true);
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) throw new Error("Sem token");
+      const res = await fetch("http://localhost:3333/users/subscription", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: "application/json",
+        },
+      });
+      const ct = (res.headers.get("content-type") || "").toLowerCase();
+      if (ct.includes("application/json")) {
         const data = await res.json();
-        if (!res.ok) throw new Error(data.error || "Erro ao carregar assinatura");
+        if (!res.ok) throw new Error(data?.error || "Erro ao carregar assinatura");
         setSubscription(data);
-      } catch (err) {
-        console.error("Erro assinatura:", err);
+      } else {
+        const text = await res.text();
+        throw new Error(text?.slice(0,200) || "Resposta inesperada do servidor");
       }
-    };
-    fetchSubscription();
-  }, []);
+    } catch (err) {
+      console.error("Erro assinatura:", err);
+      setSubError(err.message || "Erro ao carregar assinatura");
+    } finally {
+      setSubLoading(false);
+    }
+  };
+
+  useEffect(() => { fetchSubscription(); }, []);
 
   const handleEditProfile = async () => {
     const name = prompt("Novo nome:", user.name);
@@ -202,7 +217,7 @@ export default function SettingsPage() {
       <div className="card mt-3 mb-5">
         <div className="card-body">
           <h5>Conta</h5>
-          <p>
+          <p className="mb-2">
             <strong>Plano Atual:</strong> {formatPlan(subscription?.plan)}
             <br />
             <small>
@@ -210,9 +225,14 @@ export default function SettingsPage() {
               {subscription?.plan === "trial" && subscription?.remainingDays >= 0 ? ` • ${subscription.remainingDays} dias restantes` : ""}
             </small>
           </p>
+          {subLoading && <p className="text-muted">Atualizando assinatura...</p>}
+          {subError && <p className="text-danger">{subError}</p>}
           <div className="d-flex gap-2 flex-wrap">
             <button className="btn btn-outline-secondary" onClick={handleChangePlan}>
               Alternar Plano
+            </button>
+            <button className="btn btn-outline-primary" onClick={fetchSubscription} disabled={subLoading}>
+              Recarregar assinatura
             </button>
             <button className="btn btn-outline-danger" onClick={handleDeleteAccount}>
               Excluir Conta
@@ -226,4 +246,3 @@ export default function SettingsPage() {
     </div>
   );
 }
-

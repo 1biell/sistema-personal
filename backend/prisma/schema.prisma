@@ -14,40 +14,41 @@ enum Role {
 }
 
 model User {
-  id                  String          @id @default(uuid())
+  id                  String            @id @default(uuid())
   name                String
-  email               String          @unique
+  email               String            @unique
   passwordHash        String
   role                Role
-  students            Student[]       @relation("PersonalStudents")
-  studentProfile      Student?        @relation("StudentUser")
+  students            Student[]         @relation("PersonalStudents")
+  studentProfile      Student?          @relation("StudentUser")
   payments            Payment[]
   passwordResets      PasswordReset[]
+  workoutTemplates    WorkoutTemplate[]
   subscriptionPlan    String?
   subscriptionDueDate DateTime?
-  active              Boolean         @default(true)
-  createdAt           DateTime        @default(now())
+  active              Boolean           @default(true)
+  createdAt           DateTime          @default(now())
 }
 
 model Student {
-  id           String        @id @default(uuid())
-  personal     User          @relation("PersonalStudents", fields: [personalId], references: [id])
-  personalId   String
-  name         String
-  email        String        @unique
-  user         User?         @relation("StudentUser", fields: [userId], references: [id])
-  userId       String?       @unique
-  phone        String?
-  age          Int?
-  weight       Float?
-  height       Float?
-  goal         String?
-  workouts     Workout[]
-  diets        Diet[]
-  feedbacks    Feedback[]
-  progress     Progress[]
-  payments     Payment[]
-  createdAt    DateTime      @default(now())
+  id         String     @id @default(uuid())
+  personal   User       @relation("PersonalStudents", fields: [personalId], references: [id])
+  personalId String
+  name       String
+  email      String     @unique
+  user       User?      @relation("StudentUser", fields: [userId], references: [id])
+  userId     String?    @unique
+  phone      String?
+  age        Int?
+  weight     Float?
+  height     Float?
+  goal       String?
+  workouts   Workout[]
+  diets      Diet[]
+  feedbacks  Feedback[]
+  progress   Progress[]
+  payments   Payment[]
+  createdAt  DateTime   @default(now())
 }
 
 model Workout {
@@ -60,6 +61,30 @@ model Workout {
   feedbacks   Feedback[]
   exercises   Exercise[]
   createdAt   DateTime   @default(now())
+}
+
+/// Modelos de treino reutilizáveis do personal
+model WorkoutTemplate {
+  id          String             @id @default(uuid())
+  personal    User               @relation(fields: [personalId], references: [id])
+  personalId  String
+  title       String
+  description String?
+  dayOfWeek   String?
+  exercises   TemplateExercise[]
+  createdAt   DateTime           @default(now())
+}
+
+model TemplateExercise {
+  id          String          @id @default(uuid())
+  template    WorkoutTemplate @relation(fields: [templateId], references: [id])
+  templateId  String
+  name        String
+  series      Int?
+  repetitions String?
+  load        Float?
+  restTime    String?
+  notes       String?
 }
 
 model Exercise {

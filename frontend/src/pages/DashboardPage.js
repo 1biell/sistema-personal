@@ -23,7 +23,6 @@ export default function DashboardPage() {
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
-  // === Aplica cores padrão globais do gráfico ===
   ChartJS.defaults.color = theme === "dark" ? "#f8f9fa" : "#1f1f1f";
   ChartJS.defaults.borderColor = theme === "dark" ? "rgba(255,255,255,0.1)" : "#ddd";
   ChartJS.defaults.backgroundColor = "transparent";
@@ -34,7 +33,6 @@ export default function DashboardPage() {
         setLoading(false);
         return;
       }
-
       try {
         const res = await fetch("http://localhost:3333/dashboard", {
           headers: {
@@ -43,7 +41,16 @@ export default function DashboardPage() {
           },
         });
         if (res.status === 403) {
-          return navigate("/assinar", { state: { reason: "TRIAL_EXPIRED" } });
+          try {
+            const dataErr = await res.json();
+            if (dataErr?.code === "TRIAL_EXPIRED") {
+              return navigate("/assinar", { state: { reason: "TRIAL_EXPIRED" } });
+            }
+            if (dataErr?.code === "CAPABILITY_DENIED") {
+              return navigate("/assinar", { state: { reason: "UPGRADE_REQUIRED" } });
+            }
+          } catch {}
+          return;
         }
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || "Erro ao carregar dados");
@@ -55,9 +62,8 @@ export default function DashboardPage() {
         setLoading(false);
       }
     };
-
     fetchStats();
-  }, [token]);
+  }, [token, navigate, theme]);
 
   if (loading) return <p>Carregando dashboard...</p>;
   if (error) return <p className="text-danger">{error}</p>;
@@ -72,8 +78,7 @@ export default function DashboardPage() {
       {
         label: "Alunos cadastrados",
         data: studentsByMonth.map((m) => m.count),
-        backgroundColor:
-          theme === "dark" ? "rgba(13, 202, 240, 0.6)" : "rgba(54, 162, 235, 0.6)",
+        backgroundColor: theme === "dark" ? "rgba(13, 202, 240, 0.6)" : "rgba(54, 162, 235, 0.6)",
       },
     ],
   };
@@ -83,48 +88,31 @@ export default function DashboardPage() {
     maintainAspectRatio: false,
     plugins: {
       legend: {
-        labels: {
-          color: theme === "dark" ? "#f8f9fa" : "#1f1f1f", // ✅ Legenda visível
-        },
+        labels: { color: theme === "dark" ? "#f8f9fa" : "#1f1f1f" },
       },
       title: { display: false },
     },
     scales: {
       x: {
-        ticks: {
-          color: theme === "dark" ? "#f8f9fa" : "#1f1f1f", // ✅ Eixo X visível
-          font: { size: 12 },
-        },
-        grid: {
-          color: theme === "dark" ? "rgba(255,255,255,0.1)" : "#ddd",
-        },
+        ticks: { color: theme === "dark" ? "#f8f9fa" : "#1f1f1f", font: { size: 12 } },
+        grid: { color: theme === "dark" ? "rgba(255,255,255,0.1)" : "#ddd" },
       },
       y: {
-        ticks: {
-          color: theme === "dark" ? "#f8f9fa" : "#1f1f1f", // ✅ Eixo Y visível
-          font: { size: 12 },
-        },
-        grid: {
-          color: theme === "dark" ? "rgba(255,255,255,0.1)" : "#ddd",
-        },
+        ticks: { color: theme === "dark" ? "#f8f9fa" : "#1f1f1f", font: { size: 12 } },
+        grid: { color: theme === "dark" ? "rgba(255,255,255,0.1)" : "#ddd" },
       },
     },
   };
 
   return (
     <div className="container mt-4">
-      <h3 className="mb-4">📊 Dashboard Administrativo</h3>
-
-      {/* === CARDS PRINCIPAIS === */}
+      <h3 className="mb-4">Dashboard Administrativo</h3>
       <div className="row text-center mb-4">
         {[
           { label: "Alunos", value: stats.totalStudents ?? 0 },
           { label: "Treinos", value: stats.totalWorkouts ?? 0 },
           { label: "Feedbacks", value: stats.totalFeedbacks ?? 0 },
-          {
-            label: "Média de Avaliações",
-            value: stats.avgRating ? stats.avgRating.toFixed(1) : "0.0",
-          },
+          { label: "Média de Avaliações", value: stats.avgRating ? stats.avgRating.toFixed(1) : "0.0" },
         ].map((card, i) => (
           <div key={i} className="col-md-3 mb-3">
             <div className="card p-3 shadow-sm text-center">
@@ -134,29 +122,18 @@ export default function DashboardPage() {
           </div>
         ))}
       </div>
-
-      {/* === GRÁFICO === */}
       <div className="card p-4 shadow-sm mb-4">
         <h5 className="mb-3">Crescimento de Alunos (Últimos 6 meses)</h5>
         {studentsByMonth.length > 0 ? (
-          <div
-            style={{
-              backgroundColor: theme === "dark" ? "#1f1f1f" : "#fff",
-              borderRadius: "8px",
-              padding: "10px",
-              height: "350px",
-            }}
-          >
+          <div style={{ backgroundColor: theme === "dark" ? "#1f1f1f" : "#fff", borderRadius: 8, padding: 10, height: 350 }}>
             <Bar data={chartData} options={chartOptions} />
           </div>
         ) : (
           <p>Nenhum dado de crescimento disponível.</p>
         )}
       </div>
-
-      {/* === ÚLTIMOS ALUNOS === */}
       <div className="card p-4 shadow-sm">
-        <h5 className="mb-3">👥 Últimos Alunos Cadastrados</h5>
+        <h5 className="mb-3">Últimos Alunos Cadastrados</h5>
         {latestStudents.length > 0 ? (
           <table className="table table-sm table-bordered">
             <thead className={theme === "dark" ? "table-dark" : "table-light"}>
@@ -172,10 +149,7 @@ export default function DashboardPage() {
                   <td>{s.name}</td>
                   <td>{new Date(s.createdAt).toLocaleDateString("pt-BR")}</td>
                   <td>
-                    <button
-                      className="btn btn-outline-primary btn-sm"
-                      onClick={() => navigate(`/students/${s.id}`)}
-                    >
+                    <button className="btn btn-outline-primary btn-sm" onClick={() => navigate(`/students/${s.id}`)}>
                       Ver aluno
                     </button>
                   </td>

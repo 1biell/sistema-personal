@@ -1,5 +1,5 @@
 import { PrismaClient } from "@prisma/client";
-import { getStudentLimitForPlan, isUnlimitedPlan } from "../utils/plans.js";
+import { getStudentLimitForPlan, isUnlimitedPlan, hasCapability } from "../utils/plans.js";
 
 const prisma = new PrismaClient();
 
@@ -72,4 +72,29 @@ export const ensureCanCreateStudent = async (req, res, next) => {
     console.error("Erro na verificação de assinatura:", err);
     return res.status(500).json({ error: "Erro na verificação de assinatura" });
   }
+};
+
+// Exige uma capability específica do plano (ex.: 'dashboard')
+export const requirePlanCapability = (capability) => {
+  return async (req, res, next) => {
+    try {
+      if (!req.user) return res.status(401).json({ error: "Não autenticado" });
+      if (req.user.role === "admin") return next(); // admin tem acesso
+      if (req.user.role !== "personal") return res.status(403).json({ error: "Apenas personal" });
+
+      const dbUser = await prisma.user.findUnique({ where: { id: req.user.id } });
+      const plan = dbUser?.subscriptionPlan || null;
+      const due = dbUser?.subscriptionDueDate ? new Date(dbUser.subscriptionDueDate) : null;
+      if (!plan || !due || due <= new Date()) {
+        return res.status(403).json({ error: "Assinatura/Trial expirado", code: "TRIAL_EXPIRED" });
+      }
+      if (!hasCapability(plan, capability)) {
+        return res.status(403).json({ error: "Recurso não disponível no seu plano", code: "CAPABILITY_DENIED", capability });
+      }
+      return next();
+    } catch (err) {
+      console.error("Erro em requirePlanCapability:", err);
+      return res.status(500).json({ error: "Erro na verificação de capacidade" });
+    }
+  };
 };

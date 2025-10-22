@@ -6,24 +6,28 @@ export const PLANS = {
     studentLimit: Infinity, // conforme pedido: ilimitado durante o teste
     isTrial: true,
     durationDays: 7,
+    capabilities: ["core", "dashboard"],
   },
   basico: {
     code: "basico",
     name: "Básico",
     priceBRL: 29.99,
     studentLimit: 5,
+    capabilities: ["core"],
   },
   avancado: {
     code: "avancado",
     name: "Avançado",
     priceBRL: 49.99,
     studentLimit: 20,
+    capabilities: ["core", "dashboard", "templates"],
   },
   ilimitado: {
     code: "ilimitado",
     name: "Ilimitado",
     priceBRL: 89.99,
     studentLimit: Infinity,
+    capabilities: ["core", "dashboard", "templates"],
   },
 };
 
@@ -38,3 +42,9 @@ export const isUnlimitedPlan = (planCode) => {
   return limit === Infinity;
 };
 
+export const hasCapability = (planCode, capability) => {
+  if (!planCode) return false;
+  const key = String(planCode).toLowerCase();
+  const caps = PLANS[key]?.capabilities || [];
+  return caps.includes(capability);
+};

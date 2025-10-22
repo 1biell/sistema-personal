@@ -14,6 +14,7 @@ import PlansPage from "./pages/PlansPage";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
 import AdminUsersPage from "./pages/AdminUsersPage";
+import TemplatesPage from "./pages/TemplatesPage";
 // (Form pages removidas; usando formulários inline nas abas)
 
 import "./styles/theme.css";
@@ -72,6 +73,21 @@ function App() {
                   <Header />
                   <div className="main-content" style={{ paddingTop: "80px" }}>
                     <DashboardPage />
+                  </div>
+                </>
+              </PrivateRoute>
+            }
+          />
+
+          {/* Modelos de Treinos */}
+          <Route
+            path="/templates"
+            element={
+              <PrivateRoute>
+                <>
+                  <Header />
+                  <div className="main-content" style={{ paddingTop: "80px" }}>
+                    <TemplatesPage />
                   </div>
                 </>
               </PrivateRoute>

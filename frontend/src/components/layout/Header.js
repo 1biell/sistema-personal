@@ -56,6 +56,12 @@ export default function Header() {
           )}
 
           {user?.role !== "student" && (
+            <button onClick={() => navigate("/templates")} style={navBtnStyle(theme)}>
+              Modelos
+            </button>
+          )}
+
+          {user?.role !== "student" && (
             <button onClick={() => navigate("/dashboard")} style={navBtnStyle(theme)}>
               Dashboard
             </button>

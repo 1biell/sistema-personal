@@ -43,6 +43,13 @@ export async function deleteUserCascade(userId) {
     }
     // Safety: remove any dangling payments for personal
     await prisma.payment.deleteMany({ where: { personalId: userId } });
+    // Delete workout templates for this personal
+    const templates = await prisma.workoutTemplate.findMany({ where: { personalId: userId }, select: { id: true } });
+    const templateIds = templates.map(t => t.id);
+    if (templateIds.length) {
+      await prisma.templateExercise.deleteMany({ where: { templateId: { in: templateIds } } });
+      await prisma.workoutTemplate.deleteMany({ where: { id: { in: templateIds } } });
+    }
   }
 
   if (user.role === "student") {
@@ -55,4 +62,3 @@ export async function deleteUserCascade(userId) {
   // Finally delete user record
   await prisma.user.delete({ where: { id: userId } });
 }
-

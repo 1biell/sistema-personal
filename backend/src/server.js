@@ -11,6 +11,7 @@ import exercisesRoutes from "./routes/exercisesRoutes.js";
 import feedbackRoutes from "./routes/feedbackRoutes.js";
 import progressRoutes from "./routes/progressRoutes.js";
 import dashboardRoutes from "./routes/dashboardRoutes.js";
+import templatesRoutes from "./routes/templatesRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
 
@@ -31,6 +32,7 @@ app.use("/users", userRoutes);
 app.use("/admin", adminRoutes);
 app.use("/progress", progressRoutes);
 app.use("/dashboard", dashboardRoutes);
+app.use("/templates", templatesRoutes);
 
 // Chat removido
 
