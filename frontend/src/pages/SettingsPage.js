@@ -1,6 +1,7 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import "../styles/SettingsPage.css";
-import { useTheme } from "../context/ThemeContext"; // ✅ Importa o contexto do tema
+import { useTheme } from "../context/ThemeContext";
+import { useNavigate } from "react-router-dom";
 
 export default function SettingsPage() {
   const storedUser = JSON.parse(localStorage.getItem("user")) || {
@@ -8,7 +9,8 @@ export default function SettingsPage() {
     email: "seuemail@exemplo.com",
   };
 
-  const { theme, toggleTheme } = useTheme(); // ✅ Usa o contexto
+  const { theme, toggleTheme } = useTheme();
+  const navigate = useNavigate();
   const [user, setUser] = useState(storedUser);
   const [emailNotifications, setEmailNotifications] = useState(true);
   const [showChangePassword, setShowChangePassword] = useState(false);
@@ -16,8 +18,26 @@ export default function SettingsPage() {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [subscription, setSubscription] = useState({ plan: null, dueDate: null, active: false, remainingDays: 0, studentLimit: null });
 
-  // === Editar perfil ===
+  useEffect(() => {
+    const fetchSubscription = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        if (!token) return;
+        const res = await fetch("http://localhost:3333/users/subscription", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Erro ao carregar assinatura");
+        setSubscription(data);
+      } catch (err) {
+        console.error("Erro assinatura:", err);
+      }
+    };
+    fetchSubscription();
+  }, []);
+
   const handleEditProfile = async () => {
     const name = prompt("Novo nome:", user.name);
     const email = prompt("Novo e-mail:", user.email);
@@ -36,15 +56,14 @@ export default function SettingsPage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
 
-      alert("✅ Perfil atualizado com sucesso!");
+      alert("Perfil atualizado com sucesso!");
       localStorage.setItem("user", JSON.stringify(data));
       setUser(data);
     } catch (err) {
-      alert("❌ Erro ao atualizar perfil");
+      alert("Erro ao atualizar perfil");
     }
   };
 
-  // === Trocar Senha ===
   const handleChangePassword = async (e) => {
     e.preventDefault();
     if (newPassword !== confirmPassword) {
@@ -60,53 +79,35 @@ export default function SettingsPage() {
           "Content-Type": "application/json",
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
-        body: JSON.stringify({
-          currentPassword,
-          newPassword,
-        }),
+        body: JSON.stringify({ currentPassword, newPassword }),
       });
 
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Erro ao alterar senha");
 
-      alert("✅ Senha alterada com sucesso!");
+      alert("Senha alterada com sucesso!");
       setShowChangePassword(false);
       setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
     } catch (err) {
-      alert("❌ " + err.message);
+      alert("" + err.message);
     } finally {
       setLoading(false);
     }
   };
 
-  // === Alterar plano ===
   const handleChangePlan = () => {
-    alert(
-      "📦 Planos disponíveis:\n\n" +
-        "Básico — R$49/mês (até 5 alunos)\n" +
-        "Avançado — R$99/mês (até 30 alunos)\n" +
-        "Premium — R$149/mês (ilimitado)\n\n" +
-        "💳 Em breve: sistema de pagamentos integrado!"
-    );
+    navigate("/assinar");
   };
 
-  // === Excluir conta ===
   const handleDeleteAccount = async () => {
-    if (
-      !window.confirm(
-        "Tem certeza que deseja excluir sua conta? Esta ação é irreversível."
-      )
-    )
-      return;
-
+    if (!window.confirm("Tem certeza que deseja excluir sua conta? Esta ação é irreversível.")) return;
     try {
       const res = await fetch("http://localhost:3333/users/delete-account", {
         method: "DELETE",
         headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
       });
-
       if (res.ok) {
         alert("Conta excluída com sucesso!");
         localStorage.clear();
@@ -119,20 +120,34 @@ export default function SettingsPage() {
     }
   };
 
-  // === Sair ===
   const handleLogout = () => {
     localStorage.clear();
     window.location.href = "/login";
   };
 
+  const formatPlan = (code) => {
+    if (!code) return "Sem plano";
+    const map = { basico: "Básico", avancado: "Avançado", ilimitado: "Ilimitado", trial: "Teste Grátis" };
+    return map[code] || code;
+  };
+
+  const formatDate = (d) => {
+    try {
+      const dt = new Date(d);
+      if (isNaN(dt)) return "Data inválida";
+      return dt.toLocaleDateString("pt-BR");
+    } catch {
+      return String(d);
+    }
+  };
+
   return (
     <div className="container mt-4">
-      <h4>⚙️ Configurações</h4>
+      <h4>Configurações</h4>
 
-      {/* PERFIL */}
       <div className="card mt-3">
         <div className="card-body">
-          <h5>👤 Perfil</h5>
+          <h5>Perfil</h5>
           <p>
             <strong>Nome:</strong> {user.name}
             <br />
@@ -141,48 +156,26 @@ export default function SettingsPage() {
           <button className="btn btn-outline-primary me-2" onClick={handleEditProfile}>
             Editar Perfil
           </button>
-          <button
-            className="btn btn-outline-warning"
-            onClick={() => setShowChangePassword(!showChangePassword)}
-          >
+          <button className="btn btn-outline-warning" onClick={() => setShowChangePassword(!showChangePassword)}>
             Trocar Senha
           </button>
 
           {showChangePassword && (
             <div className="mt-4 border-top pt-3">
-              <h6>🔒 Alterar Senha</h6>
+              <h6>Alterar Senha</h6>
               <form onSubmit={handleChangePassword}>
                 <div className="mb-2">
                   <label className="form-label">Senha Atual</label>
-                  <input
-                    type="password"
-                    className="form-control"
-                    value={currentPassword}
-                    onChange={(e) => setCurrentPassword(e.target.value)}
-                    required
-                  />
+                  <input type="password" className="form-control" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} required />
                 </div>
                 <div className="mb-2">
                   <label className="form-label">Nova Senha</label>
-                  <input
-                    type="password"
-                    className="form-control"
-                    value={newPassword}
-                    onChange={(e) => setNewPassword(e.target.value)}
-                    required
-                  />
+                  <input type="password" className="form-control" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} required />
                 </div>
                 <div className="mb-3">
                   <label className="form-label">Confirmar Nova Senha</label>
-                  <input
-                    type="password"
-                    className="form-control"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    required
-                  />
+                  <input type="password" className="form-control" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required />
                 </div>
-
                 <button type="submit" className="btn btn-success w-100" disabled={loading}>
                   {loading ? "Salvando..." : "Alterar Senha"}
                 </button>
@@ -192,49 +185,34 @@ export default function SettingsPage() {
         </div>
       </div>
 
-      {/* PREFERÊNCIAS */}
       <div className="card mt-3">
         <div className="card-body">
-          <h5>🌸 Preferências do Sistema</h5>
+          <h5>Preferências do Sistema</h5>
           <div className="form-check form-switch mt-2">
-            <input
-              className="form-check-input"
-              type="checkbox"
-              id="darkModeSwitch"
-              checked={theme === "dark"}
-              onChange={toggleTheme}
-            />
-            <label className="form-check-label" htmlFor="darkModeSwitch">
-              Tema Escuro
-            </label>
+            <input className="form-check-input" type="checkbox" id="darkModeSwitch" checked={theme === "dark"} onChange={toggleTheme} />
+            <label className="form-check-label" htmlFor="darkModeSwitch">Tema Escuro</label>
           </div>
           <div className="form-check form-switch mt-2">
-            <input
-              className="form-check-input"
-              type="checkbox"
-              checked={emailNotifications}
-              onChange={() => setEmailNotifications(!emailNotifications)}
-              id="emailNotificationsSwitch"
-            />
-            <label className="form-check-label" htmlFor="emailNotificationsSwitch">
-              Notificações por e-mail
-            </label>
+            <input className="form-check-input" type="checkbox" checked={emailNotifications} onChange={() => setEmailNotifications(!emailNotifications)} id="emailNotificationsSwitch" />
+            <label className="form-check-label" htmlFor="emailNotificationsSwitch">Notificações por e-mail</label>
           </div>
         </div>
       </div>
 
-      {/* CONTA */}
       <div className="card mt-3 mb-5">
         <div className="card-body">
-          <h5>💼 Conta</h5>
+          <h5>Conta</h5>
           <p>
-            <strong>Plano Atual:</strong> Premium
+            <strong>Plano Atual:</strong> {formatPlan(subscription?.plan)}
             <br />
-            <small>Renovação em: 09/11/2025</small>
+            <small>
+              {subscription?.dueDate ? `Vencimento: ${formatDate(subscription.dueDate)}` : "Sem vencimento definido"}
+              {subscription?.plan === "trial" && subscription?.remainingDays >= 0 ? ` • ${subscription.remainingDays} dias restantes` : ""}
+            </small>
           </p>
           <div className="d-flex gap-2 flex-wrap">
             <button className="btn btn-outline-secondary" onClick={handleChangePlan}>
-              Alterar Plano
+              Alternar Plano
             </button>
             <button className="btn btn-outline-danger" onClick={handleDeleteAccount}>
               Excluir Conta
@@ -248,3 +226,4 @@ export default function SettingsPage() {
     </div>
   );
 }
+

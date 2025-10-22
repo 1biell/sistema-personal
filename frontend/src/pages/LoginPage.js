@@ -24,6 +24,10 @@ export default function LoginPage() {
       });
 
       const data = await res.json();
+      if (!res.ok && res.status === 403 && (data?.code === "TRIAL_EXPIRED")) {
+        navigate("/assinar", { state: { reason: "TRIAL_EXPIRED" } });
+        return;
+      }
 
       if (!res.ok) {
         setError(data.error || "Credenciais inválidas");
@@ -91,6 +95,13 @@ export default function LoginPage() {
             >
               Esqueceu a senha?
             </button>
+            <button
+              type="button"
+              className="login-link"
+              onClick={() => navigate("/register")}
+            >
+              Não possui conta? Crie uma agora
+            </button>
           </div>
 
           <button type="submit" className="login-button">Entrar</button>
@@ -99,4 +110,5 @@ export default function LoginPage() {
     </div>
   );
 }
+
 

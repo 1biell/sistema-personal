@@ -138,7 +138,12 @@ export default function AdminUsersPage() {
           </div>
           <div>
             <label>Plano</label>
-            <input className="form-control" value={form.subscriptionPlan} onChange={(e)=>setForm(f=>({...f,subscriptionPlan:e.target.value}))} placeholder="Mensal/Trimestral..."/>
+            <select className="form-select" value={form.subscriptionPlan} onChange={(e)=>setForm(f=>({...f,subscriptionPlan:e.target.value}))}>
+              <option value="">Sem plano</option>
+              <option value="basico">Básico</option>
+              <option value="avancado">Avançado</option>
+              <option value="ilimitado">Ilimitado</option>
+            </select>
           </div>
           <div>
             <label>Vencimento</label>
@@ -200,7 +205,17 @@ export default function AdminUsersPage() {
                     <td>{u.email}</td>
                     <td>{u.role}</td>
                     <td>
-                      <input className="form-control" defaultValue={u.subscriptionPlan || ""} disabled={u.role==="admin"} onBlur={(e)=>u.role!=="admin"&&updateUser(u.id,{subscriptionPlan:e.target.value})}/>
+                      <select
+                        className="form-select"
+                        value={u.subscriptionPlan || ""}
+                        disabled={u.role === "admin"}
+                        onChange={(e) => u.role !== "admin" && updateUser(u.id, { subscriptionPlan: e.target.value })}
+                      >
+                        <option value="">Sem plano</option>
+                        <option value="basico">Básico</option>
+                        <option value="avancado">Avançado</option>
+                        <option value="ilimitado">Ilimitado</option>
+                      </select>
                     </td>
                     <td>
                       <input type="date" className="form-control" defaultValue={u.subscriptionDueDate?new Date(u.subscriptionDueDate).toISOString().slice(0,10):""} disabled={u.role==="admin"} onBlur={(e)=>u.role!=="admin"&&updateUser(u.id,{subscriptionDueDate:e.target.value||null})}/>

@@ -28,6 +28,10 @@ export default function StudentsPage() {
         const res = await fetch("http://localhost:3333/students", {
           headers: { Authorization: `Bearer ${token}` },
         });
+        if (res.status === 403) {
+          // trial expirado ou sem assinatura
+          return navigate("/assinar", { state: { reason: "TRIAL_EXPIRED" } });
+        }
         const data = await res.json();
         if (Array.isArray(data)) setStudents(data);
       } catch (err) {

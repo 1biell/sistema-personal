@@ -42,7 +42,9 @@ export default function DashboardPage() {
             Authorization: `Bearer ${token}`,
           },
         });
-
+        if (res.status === 403) {
+          return navigate("/assinar", { state: { reason: "TRIAL_EXPIRED" } });
+        }
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || "Erro ao carregar dados");
         setStats(data);

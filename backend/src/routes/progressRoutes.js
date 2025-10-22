@@ -1,5 +1,6 @@
 import express from "express";
 import { verifyToken } from "../middlewares/authMiddleware.js";
+import { requireActiveSubscription } from "../middlewares/subscriptionMiddleware.js";
 import {
   getProgressByStudent,
   createProgress,
@@ -7,7 +8,7 @@ import {
 
 const router = express.Router();
 
-router.get("/:studentId", verifyToken, getProgressByStudent);
-router.post("/:studentId", verifyToken, createProgress);
+router.get("/:studentId", verifyToken, requireActiveSubscription, getProgressByStudent);
+router.post("/:studentId", verifyToken, requireActiveSubscription, createProgress);
 
 export default router;

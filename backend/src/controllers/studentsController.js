@@ -1,6 +1,7 @@
 // Controller responsável por gerenciar os alunos (students)
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
+import { deleteStudentCascade } from "../utils/deleteCascade.js";
 const prisma = new PrismaClient();
 
 /**
@@ -125,7 +126,7 @@ export const deleteStudent = async (req, res) => {
       return res.status(404).json({ error: "Aluno não encontrado" });
     }
 
-    await prisma.student.delete({ where: { id } });
+    await deleteStudentCascade(id);
     res.json({ message: "Aluno excluído com sucesso" });
   } catch (error) {
     console.error(error);
@@ -165,4 +166,5 @@ export const getStudentById = async (req, res) => {
     res.status(500).json({ error: "Erro ao buscar aluno" });
   }
 };
+
 

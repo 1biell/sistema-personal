@@ -4,6 +4,7 @@ import crypto from "crypto";
 import { PrismaClient } from "@prisma/client";
 import dotenv from "dotenv";
 import { sendPasswordResetEmail } from "../utils/mailer.js";
+import { PLANS } from "../utils/plans.js";
 
 dotenv.config();
 const prisma = new PrismaClient();
@@ -144,5 +145,87 @@ export const resetPassword = async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Erro ao redefinir senha" });
+  }
+};
+
+// Cadastro público de personal com início automático do trial (7 dias)
+export const publicRegister = async (req, res) => {
+  try {
+    const rawName = req.body?.name ?? "";
+    const rawEmail = req.body?.email ?? "";
+    const rawPassword = req.body?.password ?? "";
+
+    const name = typeof rawName === "string" ? rawName.trim() : "";
+    const email = typeof rawEmail === "string" ? rawEmail.trim() : "";
+    const password = typeof rawPassword === "string" ? rawPassword : "";
+
+    if (!name || !email || !password) {
+      return res.status(400).json({ error: "Preencha todos os campos" });
+    }
+
+    const existing = await prisma.user.findUnique({ where: { email } });
+    if (existing) return res.status(400).json({ error: "E-mail já cadastrado" });
+
+    const passwordHash = await bcrypt.hash(password, 10);
+    const now = new Date();
+    const due = new Date(now.getTime() + (PLANS.trial.durationDays || 7) * 24 * 60 * 60 * 1000);
+
+    const user = await prisma.user.create({
+      data: {
+        name,
+        email,
+        passwordHash,
+        role: "personal",
+        subscriptionPlan: "trial",
+        subscriptionDueDate: due,
+      },
+      select: { id: true, name: true, email: true, role: true, subscriptionPlan: true, subscriptionDueDate: true },
+    });
+
+    return res.status(201).json({ message: "Conta criada com teste ativo", user });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: "Erro ao registrar" });
+  }
+};
+
+// Login com checagem de assinatura/trial para personal
+export const loginWithSubscriptionCheck = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    const user = await prisma.user.findUnique({ where: { email } });
+    if (!user) return res.status(404).json({ error: "Usuário não encontrado" });
+
+    const valid = await bcrypt.compare(password, user.passwordHash);
+    if (!valid) return res.status(401).json({ error: "Senha incorreta" });
+
+    if (user.role === "personal") {
+      const plan = user.subscriptionPlan || null;
+      const due = user.subscriptionDueDate ? new Date(user.subscriptionDueDate) : null;
+      const expired = !plan || !due || due <= new Date();
+      if (expired) {
+        const appUrl = process.env.APP_URL || "";
+        const subscribePath = "/assinar";
+        const redirectTo = appUrl ? appUrl + subscribePath : subscribePath;
+        return res.status(403).json({ error: "Período de teste/assinatura expirado", code: "TRIAL_EXPIRED", redirectTo });
+      }
+    }
+
+    let studentId = null;
+    if (user.role === "student") {
+      const student = await prisma.student.findFirst({ where: { userId: user.id } });
+      studentId = student?.id || null;
+    }
+
+    const token = jwt.sign(
+      { id: user.id, role: user.role, ...(studentId ? { studentId } : {}) },
+      process.env.JWT_SECRET,
+      { expiresIn: "7d" }
+    );
+
+    return res.json({ message: "Login realizado com sucesso", token, user: { id: user.id, name: user.name, email: user.email, role: user.role, studentId } });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: "Erro no login" });
   }
 };
