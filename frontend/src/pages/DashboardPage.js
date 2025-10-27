@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/ThemeContext";
 import { useNavigate } from "react-router-dom";
+import SectionHeader from "../components/ui/SectionHeader";
 import { Bar } from "react-chartjs-2";
 import {
   Chart as ChartJS,
@@ -106,7 +107,7 @@ export default function DashboardPage() {
 
   return (
     <div className="container mt-4">
-      <h3 className="mb-4">Dashboard Administrativo</h3>
+      <SectionHeader title="Dashboard Administrativo" />
       <div className="row text-center mb-4">
         {[
           { label: "Alunos", value: stats.totalStudents ?? 0 },

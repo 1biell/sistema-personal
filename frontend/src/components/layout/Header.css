@@ -1,11 +1,12 @@
 .gnt-header {
   position: sticky;
   top: 0;
-  background: linear-gradient(90deg, var(--primary), var(--secondary));
-  color: #fff;
-  padding: 10px 30px;
   z-index: 1000;
-  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+  padding: 10px 24px;
+  color: var(--text-color);
+  border-bottom: 1px solid var(--border-color);
+  background: rgba(255,255,255,0.4);
+  backdrop-filter: saturate(160%) blur(10px);
 }
 
 .gnt-header-container {
@@ -23,9 +24,7 @@
   cursor: pointer;
 }
 
-.gnt-logo {
-  height: 40px;
-}
+.gnt-logo { height: 40px; }
 
 .gnt-title {
   font-weight: 700;
@@ -33,24 +32,28 @@
   letter-spacing: 0.5px;
 }
 
-.gnt-nav {
-  display: flex;
-  gap: 20px;
-}
+.gnt-nav { display: flex; gap: 20px; }
 
 .gnt-nav button {
   background: transparent;
   border: none;
-  color: #fff;
+  color: var(--text-color);
   font-weight: 500;
   cursor: pointer;
-  transition: 0.3s;
+  position: relative;
+  transition: color .2s ease;
 }
-
-.gnt-nav button:hover {
-  color: #f3f4f6;
-  transform: translateY(-2px);
+.gnt-nav button:hover { color: var(--accent-color); }
+.gnt-nav button::after {
+  content: "";
+  position: absolute;
+  left: 0; bottom: -6px;
+  width: 100%; height: 2px;
+  background: linear-gradient(90deg, var(--accent-color), transparent);
+  opacity: 0; transform: translateY(4px);
+  transition: opacity .2s, transform .2s;
 }
+.gnt-nav button:hover::after { opacity: 1; transform: translateY(0); }
 
 .logout-btn {
   background: transparent;
@@ -62,7 +65,16 @@
   transition: all 0.2s ease-in-out;
 }
 
-.logout-btn:hover {
-  background: #ff4d4d;
-  color: white;
+.logout-btn:hover { background: #ff4d4d; color: white; }
+
+.theme-toggle {
+  width: 34px; height: 34px;
+  display: inline-flex;
+  align-items: center; justify-content: center;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  background: var(--card-bg);
+  color: var(--text-color);
+  margin-left: 6px;
 }
+.theme-toggle:hover { color: var(--accent-color); border-color: var(--accent-color); }

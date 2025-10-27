@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import SectionHeader from "../components/ui/SectionHeader";
 
 export default function TemplatesPage() {
   const token = localStorage.getItem("token");
@@ -163,10 +164,9 @@ export default function TemplatesPage() {
 
   return (
     <div className="container mt-4">
-      <div className="d-flex justify-content-between align-items-center mb-3">
-        <h3>Modelos de Treinos</h3>
+      <SectionHeader title="Modelos de Treinos">
         <button className="btn btn-primary" onClick={openCreate}>+ Novo modelo</button>
-      </div>
+      </SectionHeader>
 
       {loading ? (
         <p>Carregando modelos...</p>

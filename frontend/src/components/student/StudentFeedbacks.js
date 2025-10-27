@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import "../../styles/student.css";
 
 export default function StudentFeedbacks({ id, token }) {
@@ -47,6 +47,21 @@ export default function StudentFeedbacks({ id, token }) {
     } catch (err) { setError(err.message); } finally { setSaving(false); }
   };
 
+  const addReply = async (feedbackId, text, clear) => {
+    if (!text || !text.trim()) return;
+    try {
+      const res = await fetch(`http://localhost:3333/feedbacks/${feedbackId}/replies`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ text }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.error || "Erro ao comentar");
+      setFeedbacks((prev) => prev.map((f) => (f.id === feedbackId ? { ...f, replies: [...(f.replies||[]), data.reply] } : f)));
+      if (clear) clear("");
+    } catch (e) { alert(e.message); }
+  };
+
   return (
     <div>
       <h5>Feedbacks</h5>
@@ -55,12 +70,27 @@ export default function StudentFeedbacks({ id, token }) {
       ) : feedbacks.length === 0 ? (
         <p>Nenhum feedback registrado.</p>
       ) : (
-        <ul>
+        <ul className="list-unstyled">
           {feedbacks.map((f) => (
-            <li key={f.id}>
-              <strong>{new Date(f.date).toLocaleDateString("pt-BR")}</strong> — Nota: {f.rating ?? "N/A"}
-              <br />
-              <small>{f.comment || "Sem comentários"}</small>
+            <li key={f.id} className="mb-3">
+              <div>
+                <strong>{new Date(f.date).toLocaleDateString("pt-BR")}</strong> - Nota: {f.rating ?? "N/A"}
+                <br />
+                <small>{f.comment || "Sem comentários"}</small>
+              </div>
+              {Array.isArray(f.replies) && f.replies.length > 0 && (
+                <div className="mt-2" style={{ paddingLeft: 12, borderLeft: "2px solid var(--border-color)" }}>
+                  {f.replies.map((r) => (
+                    <div key={r.id} className="mb-1">
+                      <small style={{ opacity: .85 }}>
+                        <strong>{r.author?.name || 'Usuário'}</strong> ({r.author?.role}) • {new Date(r.createdAt).toLocaleDateString('pt-BR')}
+                      </small>
+                      <div>{r.text}</div>
+                    </div>
+                  ))}
+                </div>
+              )}
+              <ReplyBox onSubmit={(text, clear) => addReply(f.id, text, clear)} />
             </li>
           ))}
         </ul>
@@ -102,3 +132,19 @@ export default function StudentFeedbacks({ id, token }) {
     </div>
   );
 }
+
+function ReplyBox({ onSubmit }) {
+  const [text, setText] = useState("");
+  return (
+    <form className="d-flex gap-2 mt-2" onSubmit={(e)=>{e.preventDefault(); onSubmit(text, setText);}}>
+      <input
+        className="form-control"
+        placeholder="Adicionar comentário ao feedback"
+        value={text}
+        onChange={(e)=>setText(e.target.value)}
+      />
+      <button className="btn btn-outline-primary" disabled={!text.trim()}>Comentar</button>
+    </form>
+  );
+}
+

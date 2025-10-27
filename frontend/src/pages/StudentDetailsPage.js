@@ -1,14 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 
-// ✅ Corrigido: os componentes ficam em src/components/student/
 import StudentInfo from "../components/student/StudentInfo";
 import StudentWorkouts from "../components/student/StudentWorkouts";
 import StudentFeedbacks from "../components/student/StudentFeedbacks";
 import StudentProgress from "../components/student/StudentProgress";
 
-// ✅ CSS dentro de src/styles/
 import "../styles/student.css";
+import SectionHeader from "../components/ui/SectionHeader";
 
 export default function StudentDetailsPage() {
   const { id } = useParams();
@@ -46,13 +45,13 @@ export default function StudentDetailsPage() {
   return (
     <div className="container mt-4">
       <button className="btn btn-outline-secondary mb-3" onClick={() => navigate(-1)}>
-        ⬅ Voltar
+        ← Voltar
       </button>
+
+      <SectionHeader title={student.name} subtitle={student.email} />
 
       <div className="card shadow-sm">
         <div className="card-body">
-          <h4>{student.name}</h4>
-          <p className="text-muted">{student.email}</p>
 
           {/* === Abas === */}
           <ul className="nav nav-tabs mt-3">
@@ -62,10 +61,10 @@ export default function StudentDetailsPage() {
                   className={`nav-link ${activeTab === tab ? "active" : ""}`}
                   onClick={() => setActiveTab(tab)}
                 >
-                  {tab === "info" && "📄 Informações"}
-                  {tab === "treinos" && "🏋️ Treinos"}
-                  {tab === "feedbacks" && "💬 Feedbacks"}
-                  {tab === "progresso" && "📈 Progresso"}
+                  {tab === "info" && "Informações"}
+                  {tab === "treinos" && "Treinos"}
+                  {tab === "feedbacks" && "Feedbacks"}
+                  {tab === "progresso" && "Progresso"}
                 </button>
               </li>
             ))}
@@ -83,4 +82,3 @@ export default function StudentDetailsPage() {
     </div>
   );
 }
-

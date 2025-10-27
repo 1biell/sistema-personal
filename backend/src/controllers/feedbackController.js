@@ -25,6 +25,12 @@ export const getFeedbacksByStudent = async (req, res) => {
     const feedbacks = await prisma.feedback.findMany({
       where: { studentId },
       orderBy: { date: "desc" },
+      include: {
+        replies: {
+          include: { author: { select: { id: true, name: true, role: true } } },
+          orderBy: { createdAt: "asc" },
+        },
+      },
     });
 
     res.status(200).json(feedbacks);
@@ -107,5 +113,41 @@ export const createFeedback = async (req, res) => {
   } catch (error) {
     console.error("Erro ao criar feedback:", error);
     res.status(500).json({ error: "Erro ao criar feedback" });
+  }
+};
+
+/**
+ * @desc Adiciona um comentário a um feedback existente
+ * @route POST /feedbacks/:feedbackId/replies
+ */
+export const addFeedbackReply = async (req, res) => {
+  try {
+    const { feedbackId } = req.params;
+    const { text } = req.body;
+    if (!text || !text.trim()) return res.status(400).json({ error: "Texto é obrigatório" });
+
+    const feedback = await prisma.feedback.findUnique({
+      where: { id: feedbackId },
+      include: { student: true },
+    });
+    if (!feedback) return res.status(404).json({ error: "Feedback não encontrado" });
+
+    // só o personal dono ou o aluno dono podem comentar
+    if (req.user.role === "student") {
+      const isOwner = feedback.student.userId === req.user.id;
+      if (!isOwner) return res.status(403).json({ error: "Acesso negado" });
+    } else if (req.user.role === "personal") {
+      const isOwner = feedback.student.personalId === req.user.id;
+      if (!isOwner) return res.status(403).json({ error: "Acesso negado" });
+    } // admin permitido
+
+    const reply = await prisma.feedbackReply.create({
+      data: { feedbackId, authorId: req.user.id, text: text.trim() },
+      include: { author: { select: { id: true, name: true, role: true } } },
+    });
+    return res.status(201).json({ message: "Comentário adicionado", reply });
+  } catch (error) {
+    console.error("Erro ao adicionar comentário de feedback:", error);
+    return res.status(500).json({ error: "Erro ao adicionar comentário" });
   }
 };

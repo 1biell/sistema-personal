@@ -1,16 +1,18 @@
 import React, { useEffect, useState } from "react";
 import "../styles/SettingsPage.css";
+import SectionHeader from "../components/ui/SectionHeader";
 import { useTheme } from "../context/ThemeContext";
 import { useNavigate } from "react-router-dom";
 
 export default function SettingsPage() {
-  const storedUser = JSON.parse(localStorage.getItem("user")) || {
+  const storedUser = JSON.parse(localStorage.getItem("user") || "{}") || {
     name: "Personal Trainer",
     email: "seuemail@exemplo.com",
   };
 
   const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
+
   const [user, setUser] = useState(storedUser);
   const [emailNotifications, setEmailNotifications] = useState(true);
   const [showChangePassword, setShowChangePassword] = useState(false);
@@ -29,20 +31,11 @@ export default function SettingsPage() {
       const token = localStorage.getItem("token");
       if (!token) throw new Error("Sem token");
       const res = await fetch("http://localhost:3333/users/subscription", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          Accept: "application/json",
-        },
+        headers: { Authorization: `Bearer ${token}`, Accept: "application/json" },
       });
-      const ct = (res.headers.get("content-type") || "").toLowerCase();
-      if (ct.includes("application/json")) {
-        const data = await res.json();
-        if (!res.ok) throw new Error(data?.error || "Erro ao carregar assinatura");
-        setSubscription(data);
-      } else {
-        const text = await res.text();
-        throw new Error(text?.slice(0,200) || "Resposta inesperada do servidor");
-      }
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.error || "Erro ao carregar assinatura");
+      setSubscription(data);
     } catch (err) {
       console.error("Erro assinatura:", err);
       setSubError(err.message || "Erro ao carregar assinatura");
@@ -54,23 +47,17 @@ export default function SettingsPage() {
   useEffect(() => { fetchSubscription(); }, []);
 
   const handleEditProfile = async () => {
-    const name = prompt("Novo nome:", user.name);
-    const email = prompt("Novo e-mail:", user.email);
+    const name = prompt("Novo nome:", user.name || "");
+    const email = prompt("Novo e-mail:", user.email || "");
     if (!name || !email) return;
-
     try {
       const res = await fetch("http://localhost:3333/users/update-profile", {
         method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${localStorage.getItem("token")}` },
         body: JSON.stringify({ name, email }),
       });
-
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error);
-
+      if (!res.ok) throw new Error(data.error || "Erro ao atualizar perfil");
       alert("Perfil atualizado com sucesso!");
       localStorage.setItem("user", JSON.stringify(data));
       setUser(data);
@@ -85,36 +72,28 @@ export default function SettingsPage() {
       alert("As senhas não coincidem!");
       return;
     }
-
     setLoading(true);
     try {
       const res = await fetch("http://localhost:3333/users/change-password", {
         method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${localStorage.getItem("token")}` },
         body: JSON.stringify({ currentPassword, newPassword }),
       });
-
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Erro ao alterar senha");
-
       alert("Senha alterada com sucesso!");
       setShowChangePassword(false);
       setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
     } catch (err) {
-      alert("" + err.message);
+      alert(String(err.message || err));
     } finally {
       setLoading(false);
     }
   };
 
-  const handleChangePlan = () => {
-    navigate("/assinar");
-  };
+  const handleChangePlan = () => navigate("/assinar");
 
   const handleDeleteAccount = async () => {
     if (!window.confirm("Tem certeza que deseja excluir sua conta? Esta ação é irreversível.")) return;
@@ -135,10 +114,7 @@ export default function SettingsPage() {
     }
   };
 
-  const handleLogout = () => {
-    localStorage.clear();
-    window.location.href = "/login";
-  };
+  const handleLogout = () => { localStorage.clear(); window.location.href = "/login"; };
 
   const formatPlan = (code) => {
     if (!code) return "Sem plano";
@@ -147,18 +123,13 @@ export default function SettingsPage() {
   };
 
   const formatDate = (d) => {
-    try {
-      const dt = new Date(d);
-      if (isNaN(dt)) return "Data inválida";
-      return dt.toLocaleDateString("pt-BR");
-    } catch {
-      return String(d);
-    }
+    try { const dt = new Date(d); if (isNaN(dt)) return "Data inválida"; return dt.toLocaleDateString("pt-BR"); }
+    catch { return String(d); }
   };
 
   return (
     <div className="container mt-4">
-      <h4>Configurações</h4>
+      <SectionHeader title="Configurações" />
 
       <div className="card mt-3">
         <div className="card-body">
@@ -168,12 +139,8 @@ export default function SettingsPage() {
             <br />
             <strong>Email:</strong> {user.email}
           </p>
-          <button className="btn btn-outline-primary me-2" onClick={handleEditProfile}>
-            Editar Perfil
-          </button>
-          <button className="btn btn-outline-warning" onClick={() => setShowChangePassword(!showChangePassword)}>
-            Trocar Senha
-          </button>
+          <button className="btn btn-outline-primary me-2" onClick={handleEditProfile}>Editar Perfil</button>
+          <button className="btn btn-outline-warning" onClick={() => setShowChangePassword(!showChangePassword)}>Trocar Senha</button>
 
           {showChangePassword && (
             <div className="mt-4 border-top pt-3">
@@ -191,9 +158,7 @@ export default function SettingsPage() {
                   <label className="form-label">Confirmar Nova Senha</label>
                   <input type="password" className="form-control" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required />
                 </div>
-                <button type="submit" className="btn btn-success w-100" disabled={loading}>
-                  {loading ? "Salvando..." : "Alterar Senha"}
-                </button>
+                <button type="submit" className="btn btn-success w-100" disabled={loading}>{loading ? "Salvando..." : "Alterar Senha"}</button>
               </form>
             </div>
           )}
@@ -228,21 +193,14 @@ export default function SettingsPage() {
           {subLoading && <p className="text-muted">Atualizando assinatura...</p>}
           {subError && <p className="text-danger">{subError}</p>}
           <div className="d-flex gap-2 flex-wrap">
-            <button className="btn btn-outline-secondary" onClick={handleChangePlan}>
-              Alternar Plano
-            </button>
-            <button className="btn btn-outline-primary" onClick={fetchSubscription} disabled={subLoading}>
-              Recarregar assinatura
-            </button>
-            <button className="btn btn-outline-danger" onClick={handleDeleteAccount}>
-              Excluir Conta
-            </button>
-            <button className="btn btn-danger" onClick={handleLogout}>
-              Sair da Conta
-            </button>
+            <button className="btn btn-outline-secondary" onClick={handleChangePlan}>Alternar Plano</button>
+            <button className="btn btn-outline-primary" onClick={fetchSubscription} disabled={subLoading}>Recarregar assinatura</button>
+            <button className="btn btn-outline-danger" onClick={handleDeleteAccount}>Excluir Conta</button>
+            <button className="btn btn-danger" onClick={handleLogout}>Sair da Conta</button>
           </div>
         </div>
       </div>
     </div>
   );
 }
+

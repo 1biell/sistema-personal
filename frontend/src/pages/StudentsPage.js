@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useTheme } from "../context/ThemeContext"; // 👈 Importa o tema
+import { useTheme } from "../context/ThemeContext";
+import SectionHeader from "../components/ui/SectionHeader";
 
 export default function StudentsPage() {
   const [students, setStudents] = useState([]);
@@ -19,7 +20,8 @@ export default function StudentsPage() {
 
   const token = localStorage.getItem("token");
   const navigate = useNavigate();
-  const { theme } = useTheme(); // 👈 Usa o tema atual
+  const { theme } = useTheme();
+  const [query, setQuery] = useState("");
 
   // === Buscar alunos ===
   useEffect(() => {
@@ -41,7 +43,7 @@ export default function StudentsPage() {
       }
     };
     fetchStudents();
-  }, [token]);
+  }, [token, navigate]);
 
   // === Abrir/fechar modal ===
   const toggleModal = () => setShowModal(!showModal);
@@ -89,29 +91,39 @@ export default function StudentsPage() {
 
   if (loading) return <p>Carregando alunos...</p>;
 
+  const filtered = students.filter((s) => {
+    const q = query.trim().toLowerCase();
+    if (!q) return true;
+    return (
+      s.name?.toLowerCase().includes(q) ||
+      s.email?.toLowerCase().includes(q) ||
+      s.goal?.toLowerCase().includes(q)
+    );
+  });
+
   return (
     <div className="container mt-4">
-      <div className="d-flex justify-content-between align-items-center mb-3">
-        <h3
-          style={{
-            color: theme === "dark" ? "#f8f9fa" : "#1f1f1f",
-            transition: "color 0.3s ease",
-          }}
-        >
-          👥 Lista de Alunos
-        </h3>
-        <button className="btn btn-primary" onClick={toggleModal}>
-          + Novo Aluno
-        </button>
-      </div>
+      <SectionHeader title="Lista de Alunos">
+        <>
+          <input
+            type="text"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Buscar por nome, email ou objetivo"
+            className="form-control"
+            style={{ maxWidth: 320 }}
+          />
+          <button className="btn btn-primary" onClick={toggleModal}>+ Novo Aluno</button>
+        </>
+      </SectionHeader>
 
-      {students.length === 0 ? (
+      {filtered.length === 0 ? (
         <p style={{ color: theme === "dark" ? "#ccc" : "#1f1f1f" }}>
-          Nenhum aluno cadastrado.
+          Nenhum aluno encontrado.
         </p>
       ) : (
         <div className="row mt-3">
-          {students.map((student) => (
+          {filtered.map((student) => (
             <div className="col-md-4 mb-3" key={student.id}>
               <div
                 className="card shadow-sm"
@@ -135,7 +147,7 @@ export default function StudentsPage() {
                   </h5>
                   <p
                     style={{
-                    color: theme === "dark" ? "#e0e0e0" : "#6c757d", // 👈 texto claro no escuro
+                    color: theme === "dark" ? "#e0e0e0" : "#6c757d",
                     fontSize: "0.9rem",
                     marginBottom: 0,
                     }}
@@ -220,4 +232,3 @@ export default function StudentsPage() {
     </div>
   );
 }
-

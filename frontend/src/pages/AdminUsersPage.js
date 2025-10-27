@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import SectionHeader from "../components/ui/SectionHeader";
 
 export default function AdminUsersPage() {
   const { token } = useAuth();
@@ -36,7 +37,8 @@ export default function AdminUsersPage() {
 
   useEffect(() => {
     fetchUsers();
-  }, []); // eslint-disable-line
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const createPersonal = async (e) => {
     e.preventDefault();
@@ -78,10 +80,7 @@ export default function AdminUsersPage() {
   const deleteUser = async (id, name) => {
     if (!window.confirm(`Deseja realmente excluir ${name}?`)) return;
     try {
-      const res = await fetch(`http://localhost:3333/admin/users/${id}`, {
-        method: "DELETE",
-        headers: { ...authHeader },
-      });
+      const res = await fetch(`http://localhost:3333/admin/users/${id}`, { method: "DELETE", headers: { ...authHeader } });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Erro ao excluir usuário");
       toast.success("Usuário excluído com sucesso!");
@@ -95,8 +94,8 @@ export default function AdminUsersPage() {
 
   const filteredUsers = users.filter((u) => {
     const matchesSearch =
-      u.name?.toLowerCase().includes(search.toLowerCase()) ||
-      u.subscriptionPlan?.toLowerCase().includes(search.toLowerCase());
+      (u.name || "").toLowerCase().includes(search.toLowerCase()) ||
+      (u.subscriptionPlan || "").toLowerCase().includes(search.toLowerCase());
     const matchesStatus =
       statusFilter === "all"
         ? true
@@ -111,18 +110,13 @@ export default function AdminUsersPage() {
   return (
     <div className="container" style={{ padding: 20 }}>
       <ToastContainer position="bottom-right" autoClose={2500} />
-      <h2 style={{ marginBottom: 12 }}>Admin • Gerenciar Usuários</h2>
+      <SectionHeader title="Admin — Gerenciar Usuários" />
 
       <section style={{ marginBottom: 24 }}>
         <h3>Criar novo personal</h3>
         <form
           onSubmit={createPersonal}
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(5, minmax(160px, 1fr))",
-            gap: 10,
-            alignItems: "end",
-          }}
+          style={{ display: "grid", gridTemplateColumns: "repeat(5, minmax(160px, 1fr))", gap: 10, alignItems: "end" }}
         >
           <div>
             <label>Nome</label>
@@ -230,7 +224,7 @@ export default function AdminUsersPage() {
                             Trocar senha
                           </button>
                           <button className="btn btn-sm btn-danger" onClick={()=>deleteUser(u.id,u.name)}>
-                           🗑️ Excluir
+                            Excluir
                           </button>
                         </>
                       )}
@@ -245,3 +239,4 @@ export default function AdminUsersPage() {
     </div>
   );
 }
+

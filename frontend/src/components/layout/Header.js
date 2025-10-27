@@ -1,4 +1,4 @@
-﻿import React from "react";
+import React from "react";
 import "./Header.css";
 import logo from "../../assets/logo.png";
 import { useNavigate } from "react-router-dom";
@@ -8,7 +8,7 @@ import { useTheme } from "../../context/ThemeContext";
 export default function Header() {
   const navigate = useNavigate();
   const { logout, user } = useAuth();
-  const { theme } = useTheme();
+  const { theme, toggleTheme } = useTheme();
 
   const goHome = () => {
     if (user?.role === "student" && user?.studentId) navigate(`/students/${user.studentId}`);
@@ -23,15 +23,7 @@ export default function Header() {
   };
 
   return (
-    <header
-      className="gnt-header"
-      style={{
-        backgroundColor: theme === "dark" ? "#1f1f1f" : "#ffffff",
-        borderBottom: `1px solid ${theme === "dark" ? "#333" : "#ddd"}`,
-        color: theme === "dark" ? "#f8f9fa" : "#1f1f1f",
-        transition: "all 0.3s ease",
-      }}
-    >
+    <header className="gnt-header">
       <div className="gnt-header-container">
         <div
           className="gnt-logo-area"
@@ -67,8 +59,15 @@ export default function Header() {
             </button>
           )}
 
-          <button onClick={() => navigate("/settings")} style={navBtnStyle(theme)}>
-            Configurações
+          <button onClick={() => navigate("/settings")} style={navBtnStyle(theme)}>Configurações</button>
+
+          <button
+            aria-label="Alternar tema"
+            title={theme === "dark" ? "Tema: Escuro" : "Tema: Claro"}
+            onClick={toggleTheme}
+            className="theme-toggle"
+          >
+            {theme === "dark" ? "☾" : "☀"}
           </button>
 
           <button onClick={handleLogout} style={{...navBtnStyle(theme,600), color: theme === "dark" ? "#ff6b6b" : "#dc3545"}}>

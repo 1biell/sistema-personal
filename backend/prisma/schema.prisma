@@ -24,6 +24,7 @@ model User {
   payments            Payment[]
   passwordResets      PasswordReset[]
   workoutTemplates    WorkoutTemplate[]
+  feedbackReplies     FeedbackReply[]
   subscriptionPlan    String?
   subscriptionDueDate DateTime?
   active              Boolean           @default(true)
@@ -108,6 +109,7 @@ model Feedback {
   date      DateTime @default(now())
   rating    Int?
   comment   String?
+  replies   FeedbackReply[]
 }
 
 model Diet {
@@ -165,4 +167,15 @@ model PasswordReset {
   expiresAt DateTime
   used      Boolean  @default(false)
   createdAt DateTime @default(now())
+}
+
+/// Comentários encadeados em um feedback (respostas de personal ou aluno)
+model FeedbackReply {
+  id         String   @id @default(uuid())
+  feedback   Feedback @relation(fields: [feedbackId], references: [id])
+  feedbackId String
+  author     User     @relation(fields: [authorId], references: [id])
+  authorId   String
+  text       String
+  createdAt  DateTime @default(now())
 }

@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useAuth } from "../../context/AuthContext";
 import { Line } from "react-chartjs-2";
 import "../../styles/student.css";
@@ -189,3 +189,4 @@ export default function StudentProgress({ id, token }) {
     </div>
   );
 }
+

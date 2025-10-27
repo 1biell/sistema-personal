@@ -1,4 +1,4 @@
-﻿import React from "react";
+import React from "react";
 import "../../styles/student.css";
 
 export default function StudentInfo({ student }) {
@@ -29,3 +29,4 @@ export default function StudentInfo({ student }) {
     </div>
   );
 }
+

@@ -1,13 +1,14 @@
 /* ====== GERAL ====== */
+
 .section-container {
   margin-top: 15px;
   font-size: 15px;
-  color: #333;
+  color: var(--text-color);
 }
 
 .section-container h5 {
   font-weight: 600;
-  color: #111;
+  color: var(--text-color);
 }
 
 /* ====== INFO ====== */
@@ -15,39 +16,25 @@
   margin: 4px 0;
 }
 
-.info-container strong {
-  color: #111;
-}
+.info-container strong { color: var(--text-color); }
 
 /* ====== TREINOS ====== */
-.workout-item {
-  border-bottom: 1px solid #e0e0e0;
-  padding: 10px 0;
-}
+.workout-item { border-bottom: 1px solid var(--border-color); padding: 10px 0; }
 
 .workout-item strong {
   color: #0d6efd;
 }
 
-.workout-item small {
-  color: #666;
-  display: block;
-  margin-top: 2px;
-}
+.workout-item small { color: var(--subtext-color); display: block; margin-top: 2px; }
 
 /* ====== FEEDBACKS ====== */
-.feedback-item {
-  padding: 8px 0;
-  border-bottom: 1px solid #e0e0e0;
-}
+.feedback-item { padding: 8px 0; border-bottom: 1px solid var(--border-color); }
 
 .feedback-item strong {
   color: #0d6efd;
 }
 
-.feedback-item small {
-  color: #555;
-}
+.feedback-item small { color: var(--subtext-color); }
 
 .add-btn {
   margin-top: 10px;
@@ -56,21 +43,17 @@
 
 /* ====== PROGRESSO ====== */
 .chart-container {
-  background: #fff;
+  background: var(--card-bg);
   padding: 20px;
   border-radius: 10px;
-  box-shadow: 0 0 8px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.15);
 }
 
 .progress-table {
   margin-top: 20px;
 }
 
-.progress-table th {
-  background-color: #f8f9fa;
-  font-weight: 600;
-  text-align: center;
-}
+.progress-table th { background-color: transparent; font-weight: 600; text-align: center; }
 
 .progress-table td {
   text-align: center;
