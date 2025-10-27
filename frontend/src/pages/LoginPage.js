@@ -10,6 +10,7 @@ export default function LoginPage() {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
 
   const handleLogin = async (e) => {
@@ -76,13 +77,32 @@ export default function LoginPage() {
           <div className="login-password-wrapper">
             <input
               id="password"
-              type="password"
+              type={showPassword ? "text" : "password"}
               className="login-input"
               placeholder="Sua senha"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
             />
+            <button
+              type="button"
+              className="password-toggle"
+              aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
+              onClick={() => setShowPassword((v) => !v)}
+            >
+              {showPassword ? (
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12Z"/>
+                  <circle cx="12" cy="12" r="3"/>
+                  <line x1="3" y1="3" x2="21" y2="21"/>
+                </svg>
+              ) : (
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12Z"/>
+                  <circle cx="12" cy="12" r="3"/>
+                </svg>
+              )}
+            </button>
           </div>
 
           {error && <p className="login-error" role="alert">{error}</p>}
@@ -105,6 +125,17 @@ export default function LoginPage() {
           </div>
 
           <button type="submit" className="login-button">Entrar</button>
+
+          <div className="login-signup">
+            <span>Não possui conta? </span>
+            <button
+              type="button"
+              className="login-signup-link"
+              onClick={() => navigate("/register")}
+            >
+              Criar conta
+            </button>
+          </div>
         </form>
       </div>
     </div>

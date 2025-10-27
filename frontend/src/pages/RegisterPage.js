@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import logo from "../assets/logo.png";
+import "../styles/LoginPage.css";
+import "../styles/LoginPage.css";
 
 export default function RegisterPage() {
   const navigate = useNavigate();
@@ -8,6 +10,7 @@ export default function RegisterPage() {
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -61,7 +64,35 @@ export default function RegisterPage() {
           <input id="phone" className="login-input" placeholder="(xx) xxxxx-xxxx" value={phone} onChange={(e) => setPhone(e.target.value)} />
 
           <label className="login-label" htmlFor="password">Senha</label>
-          <input id="password" type="password" className="login-input" value={password} onChange={(e) => setPassword(e.target.value)} required />
+          <div className="login-password-wrapper">
+            <input
+              id="password"
+              type={showPassword ? "text" : "password"}
+              className="login-input"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+            <button
+              type="button"
+              className="password-toggle"
+              aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
+              onClick={() => setShowPassword((v) => !v)}
+            >
+              {showPassword ? (
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12Z"/>
+                  <circle cx="12" cy="12" r="3"/>
+                  <line x1="3" y1="3" x2="21" y2="21"/>
+                </svg>
+              ) : (
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12Z"/>
+                  <circle cx="12" cy="12" r="3"/>
+                </svg>
+              )}
+            </button>
+          </div>
 
           {error && <p className="login-error" role="alert">{error}</p>}
           {success && <p className="login-success" role="status">{success}</p>}
