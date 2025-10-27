@@ -1,4 +1,4 @@
-# Sistema Personal — Monorepo (Backend + Frontend)
+# Sistema Personal — (Backend + Frontend)
 
 Aplicação para gestão de alunos, treinos, progresso e planos, com autenticação JWT e interface React.
 
