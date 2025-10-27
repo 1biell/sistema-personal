@@ -178,12 +178,4 @@ frontend/
   package.json
 ```
 
-## Dicas e Solução de Problemas
-- CORS: o backend usa `cors()`. Em produção com domínios diferentes, configure `cors({ origin: ... })`.
-- E‑mail (Gmail): ative 2FA e gere uma App Password de 16 caracteres.
-- JWT no front: para maior segurança, considere cookies HttpOnly + refresh token em produção.
-- Migrações: se `npx prisma migrate dev` falhar, valide a string de conexão e permissões do usuário no Postgres.
-- Portas ocupadas: ajuste `PORT` no `.env` do backend ou a porta do front via `PORT=3000` antes do `npm start`.
-
----
 
