@@ -31,7 +31,7 @@ export default function Header() {
           style={{ cursor: "pointer", display: "flex", alignItems: "center" }}
         >
           <img src={logo} alt="Logo" className="gnt-logo" />
-          <h2 className="gnt-title" style={{ color: theme === "dark" ? "#f8f9fa" : "#1f1f1f", marginLeft: 8 }}>Personal System</h2>
+          <h2 className="gnt-title" style={{ color: theme === "dark" ? "#f8f9fa" : "#1f1f1f", marginLeft: 8 }}>Sistema Personal</h2>
         </div>
 
         <nav className="gnt-nav" style={{ display: "flex", gap: 15 }}>
