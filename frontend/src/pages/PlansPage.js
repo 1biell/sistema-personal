@@ -79,7 +79,7 @@ export default function PlansPage() {
                     <span className="plan-amount">{p.price}</span>
                     <span className="plan-period">/ mês</span>
                   </div>
-                  <div className="plan-limit badge bg-light text-dark">Limite: {p.limit}</div>
+                  <div className="plan-limit">Limite: {p.limit}</div>
 
                   <ul className="plan-features list-unstyled mt-3 mb-4">
                     {p.features.map((f, i) => (
