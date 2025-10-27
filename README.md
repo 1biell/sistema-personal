@@ -187,4 +187,3 @@ frontend/
 
 ---
 
-Mantemos este README como fonte única de verdade para setup e deploy. Se algo mudar, atualize aqui.
